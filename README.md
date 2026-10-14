@@ -11,7 +11,7 @@ Der Mond ist zerbrochen: Als kleiner Zwerg sammelst du fünf Mondsplitter und br
 |---|---|---|
 | Laufen | WASD / Pfeiltasten (Shift = rennen) | Linker Daumen |
 | Umsehen | Maus ziehen, Mausrad = Zoom | Rechts wischen |
-| Springen | Leertaste | Sprung-Knopf |
+| Springen | Leertaste (in der Luft nochmal = Doppelsprung) | Sprung-Knopf (in der Luft nochmal = Doppelsprung) |
 | Sprechen | E | Hinweis antippen |
 | Ton | M | Lautsprecher-Knopf |
 

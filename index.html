@@ -1014,7 +1014,7 @@ scene.add(player);
 const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.6, 16), basic(0x000000, { transparent: true, opacity: 0.45, depthWrite: false }));
 shadow.rotation.x = -Math.PI / 2; scene.add(shadow);
 const START = new V3(0, 0, 13);
-const P = { pos: START.clone(), vel: new V3(), face: Math.PI, onGround: true, coyote: 0, jumpBuf: 0, phase: 0, plat: null };
+const P = { pos: START.clone(), vel: new V3(), face: Math.PI, onGround: true, coyote: 0, jumpBuf: 0, airJumps: 1, phase: 0, plat: null };
 P.pos.y = gh(P.pos.x, P.pos.z);
 
 /* ---------- interactables (wizard, toad, gate) ---------- */
@@ -1198,6 +1198,7 @@ function noise(dur, freq, vol = 0.4, q = 1) {
 }
 const sfx = {
   jump: () => tone('sine', 280, 560, 0.14, 0.18),
+  doubleJump: () => { tone('sine', 420, 980, 0.16, 0.16); tone('triangle', 840, 1600, 0.12, 0.06); },
   bounce: () => { tone('sine', 180, 900, 0.32, 0.3); tone('triangle', 360, 1400, 0.3, 0.1); },
   blip: () => tone('square', 420 + Math.random() * 160, 0, 0.05, 0.04),
   chime: () => [74, 78, 81].forEach((m, i) => tone('triangle', mtof(m), 0, 1.2, 0.18, i * 0.08)),
@@ -1289,7 +1290,7 @@ function collide(pos) {
   if (d > WORLD_R) { pos.x = WORLD_C.x + dx / d * WORLD_R; pos.z = WORLD_C.z + dz / d * WORLD_R; }
 }
 function respawn(at, msg) {
-  P.pos.set(at.x, terrainH(at.x, at.z) + 0.1, at.z); P.vel.set(0, 0, 0);
+  P.pos.set(at.x, terrainH(at.x, at.z) + 0.1, at.z); P.vel.set(0, 0, 0); P.airJumps = 1;
   if (msg) toast(msg, 3.2);
 }
 function updatePlayer(dt) {
@@ -1315,6 +1316,7 @@ function updatePlayer(dt) {
   }
   P.jumpBuf -= dt; P.coyote -= dt;
   if (P.jumpBuf > 0 && (P.onGround || P.coyote > 0)) { P.vel.y = 9.2; P.onGround = false; P.coyote = 0; P.jumpBuf = 0; sfx.jump(); }
+  else if (P.jumpBuf > 0 && P.airJumps > 0) { P.vel.y = 8.4; P.airJumps--; P.jumpBuf = 0; sfx.doubleJump(); }
   P.vel.y -= 25 * dt;
   const was = P.onGround;
   P.pos.x += P.vel.x * dt; P.pos.z += P.vel.z * dt; P.pos.y += P.vel.y * dt;
@@ -1322,6 +1324,7 @@ function updatePlayer(dt) {
   const g = groundAt(P.pos.x, P.pos.z, P.pos.y);
   if (P.pos.y <= g || (was && P.vel.y <= 0 && P.pos.y - g < 0.45)) {
     P.pos.y = g;
+    P.airJumps = 1;
     if (gPlat && gPlat.bouncy && P.vel.y < -1) { P.vel.y = 16; P.onGround = false; sfx.bounce(); gPlat.squash = 1; }
     else { P.vel.y = 0; P.onGround = true; P.coyote = 0.1; }
   } else { if (P.onGround) P.coyote = 0.12; P.onGround = false; }
