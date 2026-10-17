@@ -1,0 +1,82 @@
+{
+  "name": "SubZero",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": { "$path": "src/shared" },
+      "Remotes": {
+        "$className": "Folder",
+        "RequestStance": { "$className": "RemoteEvent" },
+        "RequestSprint": { "$className": "RemoteEvent" },
+        "UseItem": { "$className": "RemoteEvent" },
+        "ThrowItem": { "$className": "RemoteEvent" },
+        "DropItem": { "$className": "RemoteEvent" },
+        "SelectSlot": { "$className": "RemoteEvent" },
+        "ChooseLoadout": { "$className": "RemoteEvent" },
+        "GeneratorAttempt": { "$className": "RemoteEvent" },
+        "CentrifugeInput": { "$className": "RemoteEvent" },
+        "ToggleFlashlight": { "$className": "RemoteEvent" },
+        "UseScanner": { "$className": "RemoteEvent" },
+        "ExitLocker": { "$className": "RemoteEvent" },
+        "LookDir": { "$className": "UnreliableRemoteEvent" },
+        "PlayCinematic": { "$className": "RemoteEvent" },
+        "ScreenEffect": { "$className": "RemoteEvent" },
+        "RoundStateChanged": { "$className": "RemoteEvent" },
+        "Sound3D": { "$className": "RemoteEvent" },
+        "ScannerResult": { "$className": "RemoteEvent" },
+        "OpenNote": { "$className": "RemoteEvent" },
+        "OpenTerminal": { "$className": "RemoteEvent" },
+        "Notify": { "$className": "RemoteEvent" }
+      },
+      "Assets": { "$className": "Folder" }
+    },
+    "ServerScriptService": { "$path": "src/server" },
+    "ServerStorage": {
+      "MapBuilder": { "$path": "src/mapbuilder" }
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "CameraMode": "LockFirstPerson",
+        "GameSettingsAvatar": "R15",
+        "CameraMaxZoomDistance": 0.5,
+        "CameraMinZoomDistance": 0.5,
+        "CharacterUseJumpPower": false,
+        "CharacterJumpHeight": 0,
+        "CharacterWalkSpeed": 10,
+        "AutoJumpEnabled": false,
+        "EnableMouseLockOption": false
+      },
+      "StarterPlayerScripts": { "$path": "src/client" },
+      "StarterCharacterScripts": { "$className": "StarterCharacterScripts" }
+    },
+    "StarterGui": {
+      "$properties": { "ResetPlayerGuiOnSpawn": false }
+    },
+    "Players": {
+      "$properties": { "CharacterAutoLoads": false, "RespawnTime": 1 }
+    },
+    "Workspace": {
+      "$properties": {
+        "StreamingEnabled": true,
+        "StreamingTargetRadius": 256,
+        "StreamingMinRadius": 64
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Technology": "Future",
+        "GlobalShadows": true,
+        "EnvironmentDiffuseScale": 0.05,
+        "EnvironmentSpecularScale": 0.1,
+        "ClockTime": 0,
+        "Brightness": 0,
+        "Ambient": [0.098, 0.059, 0.039],
+        "OutdoorAmbient": [0, 0, 0],
+        "ExposureCompensation": 0
+      }
+    },
+    "SoundService": {
+      "$properties": { "AmbientReverb": "LivingRoom", "RespectFilteringEnabled": true }
+    }
+  }
+}

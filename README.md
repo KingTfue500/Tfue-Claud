@@ -26,3 +26,11 @@ Der Mond ist zerbrochen: Als kleiner Zwerg sammelst du fünf Mondsplitter und br
 - **Hand-Turm** – das Finale
 
 Alles (Grafik, Musik, Soundeffekte) wird im Code erzeugt; es gibt keine externen Bilder oder Audiodateien.
+
+---
+
+# SUB-ZERO: THE HEAT HUNTER (Roblox)
+
+Im Ordner [`subzero/`](subzero/) liegt das komplette Roblox-Spiel nach der Master-Spezifikation v2.
+Die fertige Place-Datei ist [`subzero/build/SubZero.rbxl`](subzero/build/SubZero.rbxl) – in Roblox Studio öffnen und spielen.
+Details, Steuerung und Aufbau: [`subzero/README.md`](subzero/README.md).
