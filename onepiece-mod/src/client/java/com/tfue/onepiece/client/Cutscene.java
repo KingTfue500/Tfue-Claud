@@ -4,7 +4,11 @@ import com.tfue.onepiece.power.Form;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -120,21 +124,40 @@ public final class Cutscene {
 			float yaw = entity.getYRot() * Mth.DEG_TO_RAD;
 			Vec3 forward = new Vec3(-Mth.sin(yaw), 0, Mth.cos(yaw));
 			float side = startAngle + p * 0.5F;
+			if (form == Form.KAIDO_DRAGON) {
+				// The serpent trails far behind its head, so stay wide and above it.
+				float radius = h * 3.4F;
+				Vec3 eye = center.add(Mth.cos(side) * radius, h * 0.9, Mth.sin(side) * radius);
+				return new Vec3[] {unblocked(entity, center, eye), center.add(forward.scale(h * 1.5))};
+			}
 			float radius = Math.max(3.0F, h * 1.7F);
 			Vec3 eye = center.add(forward.scale(radius * 0.6)).add(Mth.cos(side) * radius, -h * 0.35, Mth.sin(side) * radius);
-			return new Vec3[] {eye, center.add(forward.scale(h * 1.2))};
+			return new Vec3[] {unblocked(entity, center, eye), center.add(forward.scale(h * 1.2))};
 		}
 		float ease = p * p * (3 - 2 * p);
 		float angle = startAngle + ease * Mth.PI * 1.15F;
 		// Start tight on the face, pull out for the reveal, then circle around.
-		float base = Math.max(3.2F, h * 1.6F);
 		boolean dragon = form == Form.KAIDO_DRAGON;
+		// The dragon is a long serpent coiling behind its head: frame all of it from wide and high.
+		float base = dragon ? h * 2.8F : Math.max(3.2F, h * 1.6F);
 		float pull = dragon ? 1.0F + 0.15F * Mth.sin(p * Mth.PI) : p < 0.4F ? 0.45F + 0.55F * (p / 0.4F) * (p / 0.4F) : 1.0F + 0.15F * Mth.sin((p - 0.4F) / 0.6F * Mth.PI);
 		float radius = base * pull;
 		Vec3 face = entity.getPosition(partialTicks).add(0, h * 0.85, 0);
 		Vec3 focus = p < 0.4F && !dragon ? face.lerp(center, p / 0.4F) : center;
-		float height = h * (0.05F + 0.3F * Math.max(0.0F, p - 0.3F));
+		float height = dragon ? h * (0.7F + 0.3F * p) : h * (0.05F + 0.3F * Math.max(0.0F, p - 0.3F));
 		Vec3 eye = focus.add(Mth.cos(angle) * radius, height, Mth.sin(angle) * radius);
-		return new Vec3[] {eye, focus};
+		return new Vec3[] {unblocked(entity, focus, eye), focus};
+	}
+
+	/** Pulls the camera in front of any block between it and the fighter, so it never ends up inside a hill or a tree. */
+	private static Vec3 unblocked(Entity entity, Vec3 focus, Vec3 eye) {
+		BlockHitResult hit = entity.level().clip(new ClipContext(focus, eye, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, CollisionContext.empty()));
+		if (hit.getType() != HitResult.Type.BLOCK) {
+			return eye;
+		}
+		Vec3 offset = eye.subtract(focus);
+		double length = offset.length();
+		double allowed = Math.max(0.8, hit.getLocation().distanceTo(focus) - 0.35);
+		return allowed >= length ? eye : focus.add(offset.scale(allowed / length));
 	}
 }
