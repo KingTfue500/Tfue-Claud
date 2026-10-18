@@ -352,6 +352,27 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		}
 	}
 
+	/** The same crescent as a curved standing wall, so slashes also read when seen edge-on. */
+	private static void crescentWall(VertexConsumer buf, PoseStack.Pose pose, float radius, float height, float bulge, int color, int light) {
+		int steps = 24;
+		for (int n = 0; n < steps; n++) {
+			float f0 = n / (float) steps;
+			float f1 = (n + 1) / (float) steps;
+			float a0 = (f0 - 0.5F) * Mth.PI * 0.9F;
+			float a1 = (f1 - 0.5F) * Mth.PI * 0.9F;
+			float h0 = Mth.sin(f0 * Mth.PI) * height;
+			float h1 = Mth.sin(f1 * Mth.PI) * height;
+			float x0 = Mth.sin(a0) * radius;
+			float x1 = Mth.sin(a1) * radius;
+			float z0 = Mth.cos(a0) * radius * bulge;
+			float z1 = Mth.cos(a1) * radius * bulge;
+			Geo.v(buf, pose, x0, -h0, z0, f0, 1, color, light);
+			Geo.v(buf, pose, x1, -h1, z1, f1, 1, color, light);
+			Geo.v(buf, pose, x1, h1, z1, f1, 0, color, light);
+			Geo.v(buf, pose, x0, h0, z0, f0, 0, color, light);
+		}
+	}
+
 	private void slash(State state, PoseStack poseStack, SubmitNodeCollector collector, float q) {
 		float fade = 1.0F - q * q;
 		float grow = 0.75F + 0.25F * Math.min(1.0F, state.age / 4.0F);
@@ -370,6 +391,20 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		poseStack.translate(0, -0.04F, 0);
 		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(SLASH), (pose, buf) ->
 			crescent(buf, pose, r * 1.05F, r * 0.3F, 0.5F, Geo.alpha(color, 0.35F * fade), Geo.FULL_BRIGHT));
+		collector.submitCustomGeometry(poseStack, glowOrSoft(color, BEAM), (pose, buf) ->
+			crescentWall(buf, pose, r, r * 0.22F, 0.55F, Geo.alpha(color, 0.8F * fade), Geo.FULL_BRIGHT));
+		// Afterimages trailing behind a flying slash.
+		if (state.speed > 0.2F) {
+			for (int k = 1; k <= 3; k++) {
+				poseStack.translate(0, 0, -state.speed * 0.7F);
+				float a = fade * (0.45F - k * 0.12F);
+				float rk = r * (1.0F - k * 0.06F);
+				collector.submitCustomGeometry(poseStack, glowOrSoft(color, SLASH), (pose, buf) -> {
+					crescent(buf, pose, rk, rk * 0.2F, 0.55F, Geo.alpha(color, a), Geo.FULL_BRIGHT);
+					crescentWall(buf, pose, rk, rk * 0.18F, 0.55F, Geo.alpha(color, a * 0.8F), Geo.FULL_BRIGHT);
+				});
+			}
+		}
 		poseStack.popPose();
 	}
 
