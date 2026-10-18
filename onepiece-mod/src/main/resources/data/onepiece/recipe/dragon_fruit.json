@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LCL",
+    "DAD",
+    "LBL"
+  ],
+  "key": {
+    "L": "minecraft:lapis_lazuli",
+    "C": "minecraft:cinnabar",
+    "D": "minecraft:diamond",
+    "A": "minecraft:golden_apple",
+    "B": "minecraft:blaze_rod"
+  },
+  "result": {
+    "id": "onepiece:dragon_fruit",
+    "count": 1
+  }
+}

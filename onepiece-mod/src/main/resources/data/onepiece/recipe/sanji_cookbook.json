@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    "minecraft:blaze_powder",
+    "minecraft:bread",
+    "minecraft:cooked_beef"
+  ],
+  "result": {
+    "id": "onepiece:sanji_cookbook"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SCS",
+    "DAD",
+    "SCS"
+  ],
+  "key": {
+    "S": "minecraft:slime_ball",
+    "C": "minecraft:cinnabar",
+    "D": "minecraft:diamond",
+    "A": "minecraft:golden_apple"
+  },
+  "result": {
+    "id": "onepiece:gum_gum_fruit",
+    "count": 1
+  }
+}

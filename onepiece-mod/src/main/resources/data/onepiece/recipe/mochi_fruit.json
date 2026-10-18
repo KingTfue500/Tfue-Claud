@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SPS",
+    "DAD",
+    "SPS"
+  ],
+  "key": {
+    "S": "minecraft:sugar",
+    "P": "minecraft:pink_dye",
+    "D": "minecraft:diamond",
+    "A": "minecraft:golden_apple"
+  },
+  "result": {
+    "id": "onepiece:mochi_fruit",
+    "count": 1
+  }
+}

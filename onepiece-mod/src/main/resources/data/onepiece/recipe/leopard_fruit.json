@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LGL",
+    "DAD",
+    "LSL"
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "G": "minecraft:gold_ingot",
+    "D": "minecraft:diamond",
+    "A": "minecraft:golden_apple",
+    "S": "minecraft:sulfur"
+  },
+  "result": {
+    "id": "onepiece:leopard_fruit",
+    "count": 1
+  }
+}

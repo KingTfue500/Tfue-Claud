@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "WWW",
+    "WRW"
+  ],
+  "key": {
+    "W": "minecraft:wheat",
+    "R": "minecraft:red_dye"
+  },
+  "result": {
+    "id": "onepiece:straw_hat",
+    "count": 1
+  }
+}

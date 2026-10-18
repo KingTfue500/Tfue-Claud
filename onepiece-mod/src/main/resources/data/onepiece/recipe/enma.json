@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  A",
+    " N ",
+    "P  "
+  ],
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "N": "minecraft:netherite_ingot",
+    "P": "minecraft:purple_wool"
+  },
+  "result": {
+    "id": "onepiece:enma",
+    "count": 1
+  }
+}
