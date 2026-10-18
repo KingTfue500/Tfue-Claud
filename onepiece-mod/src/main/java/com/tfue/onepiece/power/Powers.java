@@ -515,6 +515,10 @@ public final class Powers {
 		} else if (granted) {
 			DRAGON_FLIGHT.remove(player.getUUID());
 			if (!player.isCreative() && !player.isSpectator()) {
+				if (!player.onGround()) {
+					// Leaving the dragon form in the air should not mean a deadly fall.
+					player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 160, 0, false, false, true));
+				}
 				player.getAbilities().mayfly = false;
 				player.getAbilities().flying = false;
 				player.onUpdateAbilities();
