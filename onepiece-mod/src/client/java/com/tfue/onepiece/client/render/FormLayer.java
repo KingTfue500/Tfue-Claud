@@ -100,8 +100,8 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 			}
 			case KATAKURI -> {
 				part(poseStack, m.head, () -> scarf(poseStack, collector, light));
-				boolean punching = info.animating() && info.anim() != Anim.GUARD && info.anim() != Anim.STOMP;
-				if (!punching || info.anim() == Anim.PUNCH_RIGHT && info.progress() > 0.6F) {
+				// Held upright while idle; during attacks the thrust effect takes over.
+				if (!info.animating() || info.anim() == Anim.GUARD) {
 					part(poseStack, m.rightArm, () -> trident(poseStack, collector, light, form == Form.KATAKURI_AWAKENED || info.armament()));
 				}
 				if (form == Form.KATAKURI_AWAKENED) {
@@ -324,17 +324,17 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 		});
 	}
 
-	/** Mogura, the mochi trident. */
+	/** Mogura, the mochi trident, held upright like a staff (it points forward when the arm thrusts). */
 	private static void trident(PoseStack poseStack, SubmitNodeCollector collector, int light, boolean haki) {
 		poseStack.pushPose();
-		poseStack.translate(-1.0F * PX, 10.5F * PX, 0);
+		poseStack.translate(-1.0F * PX, 10.5F * PX, -1.2F * PX);
 		int shaft = haki ? 0xFF221A26 : 0xFFF2E4EA;
 		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(WHITE), (pose, buf) -> {
-			Geo.box(buf, pose, -0.04F, -0.04F, -1.9F, 0.04F, 0.04F, 0.6F, shaft, light);
-			Geo.box(buf, pose, -0.28F, -0.05F, -2.0F, 0.28F, 0.05F, -1.9F, shaft, light);
+			Geo.box(buf, pose, -0.04F, -1.9F, -0.04F, 0.04F, 0.7F, 0.04F, shaft, light);
+			Geo.box(buf, pose, -0.28F, -2.0F, -0.05F, 0.28F, -1.9F, 0.05F, shaft, light);
 			for (int n = -1; n <= 1; n++) {
 				float x = n * 0.24F;
-				Geo.box(buf, pose, x - 0.035F, -0.035F, -2.55F + Math.abs(n) * 0.12F, x + 0.035F, 0.035F, -2.0F, shaft, light);
+				Geo.box(buf, pose, x - 0.035F, -2.55F + Math.abs(n) * 0.12F, -0.035F, x + 0.035F, -2.0F, 0.035F, shaft, light);
 			}
 		});
 		poseStack.popPose();

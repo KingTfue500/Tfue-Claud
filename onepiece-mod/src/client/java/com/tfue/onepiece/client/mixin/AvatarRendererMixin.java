@@ -38,6 +38,10 @@ public abstract class AvatarRendererMixin {
 		boolean sword = player.getMainHandItem().is(ItemTags.SWORDS) || player.getOffhandItem().is(ItemTags.SWORDS);
 		boolean hat = player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.STRAW_HAT);
 		boolean self = player == Minecraft.getInstance().player && Minecraft.getInstance().options.getCameraType().isFirstPerson() && !com.tfue.onepiece.client.Cutscene.active();
+		if (data.form() == Form.RAID_SUIT && player == Minecraft.getInstance().player) {
+			// Stealth Black: you still see yourself as a faint ghost, everyone else sees nothing.
+			state.isInvisibleToPlayer = false;
+		}
 		state.setData(PowerRenderInfo.KEY, new PowerRenderInfo(data.fighter(), data.form(), data.anim(), data.animProgress(time),
 			data.armament(), data.giantUntil() > player.level().getGameTime(), time, sword, hat, self));
 	}
