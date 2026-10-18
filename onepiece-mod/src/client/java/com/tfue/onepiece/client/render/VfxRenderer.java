@@ -30,6 +30,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 	private static final Identifier IMPACT = ModRenderTypes.tex("impact");
 	private static final Identifier WIND = ModRenderTypes.tex("wind");
 	private static final Identifier WHITE = ModRenderTypes.tex("white");
+	private static final Identifier BEAM = ModRenderTypes.tex("beam");
 	private static final String[] LOOKS = {"skin", "haki", "gear5", "gear2", "gear4", "mochi"};
 
 	public VfxRenderer(EntityRendererProvider.Context context) {
@@ -52,6 +53,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		public Vec3 target = Vec3.ZERO;
 		public @Nullable Vec3 start;
 		public Vec3 ownerPos = Vec3.ZERO;
+		public float speed;
 	}
 
 	@Override
@@ -77,6 +79,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		state.yaw = entity.getYRot();
 		state.pitch = entity.getXRot();
 		state.seed = entity.getId();
+		state.speed = (float) entity.getDeltaMovement().length();
 		Vec3 pos = new Vec3(state.x, state.y, state.z);
 		state.target = entity.getTarget().subtract(pos);
 		state.start = null;
@@ -196,13 +199,17 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		float yaw = (float) (Math.atan2(-d.x, d.z) * Mth.RAD_TO_DEG);
 		float pitch = (float) (-Math.atan2(d.y, d.horizontalDistance()) * Mth.RAD_TO_DEG);
 		faceDirection(poseStack, yaw, pitch);
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(tip), (pose, buf) -> Geo.cube(buf, pose, fs, fs, fs * 1.15F, -1, light));
+		if (arm) {
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(tip), (pose, buf) -> Geo.fist(buf, pose, fs, -1, light));
+		} else {
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(tip), (pose, buf) -> Geo.cube(buf, pose, fs, fs * 0.8F, fs * 1.3F, -1, light));
+		}
 		poseStack.popPose();
 		// Speed lines while the limb shoots out.
 		if (q < 0.35F && dir.length() > 2.0) {
 			int color = look == Moves.LOOK_GEAR5 ? 0xC0FFFFFF : 0x90FFFFFF;
 			RandomSource random = RandomSource.create(state.seed * 31L + (long) (state.age));
-			collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(GLOW), (pose, buf) -> {
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(BEAM), (pose, buf) -> {
 				for (int n = 0; n < 5; n++) {
 					Vec3 off = new Vec3(random.nextFloat() - 0.5, random.nextFloat() - 0.5, random.nextFloat() - 0.5).scale(w * 3);
 					Vec3 a = start.lerp(end, 0.2 + random.nextFloat() * 0.3).add(off);
@@ -227,10 +234,15 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		int light = Geo.FULL_BRIGHT;
 		Identifier fistTex = ModRenderTypes.tex("fist_" + name);
 		Identifier armTex = ModRenderTypes.tex("arm_" + name);
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(fistTex), (pose, buf) -> Geo.cube(buf, pose, fs, fs * 0.9F, fs, -1, light));
-		Vec3 back = new Vec3(0, 0, -s * 2.4);
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(armTex),
-			(pose, buf) -> Geo.tube(buf, pose, new Vec3(0, 0, -fs * 0.8), back, fs * 1.1F, fs * 1.4F, -1, light));
+		int fistLight = state.lightCoords;
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(fistTex), (pose, buf) -> Geo.fist(buf, pose, fs, -1, Math.max(fistLight, 0xA000A0)));
+		// The forearm trails behind the fist but never further back than where the fist was launched.
+		float trail = Math.min(s * 2.4F, Math.max(0.0F, state.age * state.speed - fs));
+		Vec3 back = new Vec3(0, 0, -fs * 0.8 - trail);
+		if (trail > 0.05F) {
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(armTex),
+				(pose, buf) -> Geo.tube(buf, pose, new Vec3(0, 0, -fs * 0.8), back, fs * 1.1F, fs * 1.4F, -1, light));
+		}
 		// Glowing aura and motion streaks behind the fist.
 		int aura = look == Moves.LOOK_GEAR5 ? 0xA0FFF6D0 : look == Moves.LOOK_HAKI || look == Moves.LOOK_GEAR4 ? 0xA0B0103A : 0x70FFFFFF;
 		RandomSource random = RandomSource.create(state.seed);
@@ -447,14 +459,14 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 				paths[k][n] = p;
 			}
 		}
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(WHITE), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(BEAM), (pose, buf) -> {
 			for (Vec3[] path : paths) {
 				for (int n = 0; n < path.length - 1; n++) {
 					Geo.beam(buf, pose, path[n], path[n + 1], camRel, 0.55F * (1 - n / (float) path.length) + 0.1F, Geo.alpha(0xFF0A0408, fade), Geo.alpha(0xFF0A0408, fade * 0.8F), Geo.FULL_BRIGHT);
 				}
 			}
 		});
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(GLOW), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(BEAM), (pose, buf) -> {
 			for (Vec3[] path : paths) {
 				for (int n = 0; n < path.length - 1; n++) {
 					Geo.beam(buf, pose, path[n], path[n + 1], camRel, 0.22F * (1 - n / (float) path.length) + 0.05F, Geo.alpha(state.color, fade), Geo.alpha(state.color, fade * 0.6F), Geo.FULL_BRIGHT);
@@ -479,7 +491,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			}
 			path[n] = p;
 		}
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(GLOW), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(BEAM), (pose, buf) -> {
 			for (int n = 0; n < steps; n++) {
 				Geo.beam(buf, pose, path[n], path[n + 1], camRel, 0.9F * width, Geo.alpha(color, fade * 0.7F), Geo.alpha(color, fade * 0.7F), Geo.FULL_BRIGHT);
 				Geo.beam(buf, pose, path[n], path[n + 1], camRel, 0.3F * width, Geo.alpha(0xFFFFFFFF, fade), Geo.alpha(0xFFFFFFFF, fade), Geo.FULL_BRIGHT);
@@ -559,7 +571,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		Vec3 end = state.target;
 		RandomSource random = RandomSource.create(state.seed * 101L);
 		int color = state.color;
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(GLOW), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(BEAM), (pose, buf) -> {
 			for (int n = 0; n < 9; n++) {
 				Vec3 off = new Vec3(random.nextFloat() - 0.5, (random.nextFloat() - 0.5) * 1.6, random.nextFloat() - 0.5).scale(0.9);
 				float from = random.nextFloat() * 0.3F + q * 0.5F;

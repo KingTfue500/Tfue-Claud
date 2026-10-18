@@ -64,6 +64,19 @@ def glow():
     save(radial(64, 1.8), 'glow')
 
 
+def beam():
+    w, h = 16, 32
+    img = Image.new('RGBA', (w, h))
+    for y in range(h):
+        v = y / (h - 1)
+        a = math.exp(-((v - 0.5) / 0.22) ** 2)
+        core = math.exp(-((v - 0.5) / 0.08) ** 2)
+        for x in range(w):
+            c = 215 + 40 * core
+            img.putpixel((x, y), (clamp(c), clamp(c), clamp(c), clamp(a * 255)))
+    save(img, 'beam')
+
+
 def white():
     save(Image.new('RGBA', (16, 16), (255, 255, 255, 255)), 'white')
 
@@ -311,5 +324,5 @@ def haki_overlay():
 
 
 if __name__ == '__main__':
-    glow(); white(); slash(); band(); fire(); cloud(); impact(); wind(); limbs(); straw(); props(); haki_overlay()
+    glow(); beam(); white(); slash(); band(); fire(); cloud(); impact(); wind(); limbs(); straw(); props(); haki_overlay()
     print('vfx done')

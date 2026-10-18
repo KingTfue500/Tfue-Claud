@@ -58,7 +58,7 @@ public final class Geo {
 		for (int n = 0; n < 4; n++) {
 			Vec3 c0 = corners[n];
 			Vec3 c1 = corners[(n + 1) % 4];
-			quad(buf, pose, a.add(c0), a.add(c1), b.add(c1), b.add(c0), 0.0F, 0.0F, 1.0F, vLen, color, light);
+			quad(buf, pose, a.add(c0), a.add(c1), b.add(c1), b.add(c0), 0.0F, 0.0F, 1.0F, vLen, color, light, a.add(b).scale(0.5));
 		}
 	}
 
@@ -70,15 +70,44 @@ public final class Geo {
 		};
 		int[][] faces = {{0, 1, 2, 3}, {5, 4, 7, 6}, {4, 0, 3, 7}, {1, 5, 6, 2}, {3, 2, 6, 7}, {4, 5, 1, 0}};
 		for (int[] face : faces) {
-			quad(buf, pose, p[face[0]], p[face[1]], p[face[2]], p[face[3]], 0, 1, 1, 0, color, light);
+			quad(buf, pose, p[face[0]], p[face[1]], p[face[2]], p[face[3]], 0, 1, 1, 0, color, light, Vec3.ZERO);
 		}
 	}
 
+	/** Vertex with an explicit normal, so lit render types shade each face by its direction. */
+	public static void vn(VertexConsumer b, PoseStack.Pose pose, Vec3 p, float u, float v, int color, int light, Vec3 n) {
+		b.addVertex(pose, (float) p.x, (float) p.y, (float) p.z).setColor(color).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+			.setNormal(pose, (float) n.x, (float) n.y, (float) n.z);
+	}
+
 	public static void quad(VertexConsumer b, PoseStack.Pose pose, Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3, float u0, float v0, float u1, float v1, int color, int light) {
-		v(b, pose, (float) p0.x, (float) p0.y, (float) p0.z, u0, v0, color, light);
-		v(b, pose, (float) p1.x, (float) p1.y, (float) p1.z, u1, v0, color, light);
-		v(b, pose, (float) p2.x, (float) p2.y, (float) p2.z, u1, v1, color, light);
-		v(b, pose, (float) p3.x, (float) p3.y, (float) p3.z, u0, v1, color, light);
+		quad(b, pose, p0, p1, p2, p3, u0, v0, u1, v1, color, light, null);
+	}
+
+	/** Quad whose normal points away from {@code center} (when given) so solids light correctly. */
+	public static void quad(VertexConsumer b, PoseStack.Pose pose, Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3, float u0, float v0, float u1, float v1, int color, int light,
+		Vec3 center) {
+		Vec3 n = p1.subtract(p0).cross(p3.subtract(p0));
+		n = n.lengthSqr() > 1.0E-12 ? n.normalize() : new Vec3(0, 1, 0);
+		if (center != null && n.dot(p0.add(p2).scale(0.5).subtract(center)) < 0) {
+			n = n.scale(-1);
+		}
+		vn(b, pose, p0, u0, v0, color, light, n);
+		vn(b, pose, p1, u1, v0, color, light, n);
+		vn(b, pose, p2, u1, v1, color, light, n);
+		vn(b, pose, p3, u0, v1, color, light, n);
+	}
+
+	/** A clenched fist centred on the origin, knuckles facing +Z, {@code s} is half its width. */
+	public static void fist(VertexConsumer buf, PoseStack.Pose pose, float s, int color, int light) {
+		box(buf, pose, -s, -s * 0.8F, -s * 0.9F, s, s * 0.75F, s * 0.45F, color, light);
+		for (int n = 0; n < 4; n++) {
+			float x0 = -s + n * s * 0.5F;
+			float bump = n == 1 || n == 2 ? s * 0.08F : 0.0F;
+			box(buf, pose, x0 + s * 0.03F, -s * 0.72F, s * 0.4F, x0 + s * 0.47F, s * 0.62F, s * 0.95F + bump, color, light);
+			box(buf, pose, x0 + s * 0.06F, -s * 0.85F, s * 0.05F, x0 + s * 0.44F, -s * 0.5F, s * 0.7F, color, light);
+		}
+		box(buf, pose, -s * 1.22F, -s * 0.7F, -s * 0.2F, -s * 0.85F, s * 0.1F, s * 0.75F, color, light);
 	}
 
 	/** A camera-facing ribbon between two points (lightning, streaks). */
@@ -103,8 +132,9 @@ public final class Geo {
 			new Vec3(x0, y0, z1), new Vec3(x1, y0, z1), new Vec3(x1, y1, z1), new Vec3(x0, y1, z1)
 		};
 		int[][] faces = {{0, 1, 2, 3}, {5, 4, 7, 6}, {4, 0, 3, 7}, {1, 5, 6, 2}, {3, 2, 6, 7}, {4, 5, 1, 0}};
+		Vec3 center = new Vec3((x0 + x1) * 0.5, (y0 + y1) * 0.5, (z0 + z1) * 0.5);
 		for (int[] face : faces) {
-			quad(buf, pose, p[face[0]], p[face[1]], p[face[2]], p[face[3]], 0, 0, 1, 1, color, light);
+			quad(buf, pose, p[face[0]], p[face[1]], p[face[2]], p[face[3]], 0, 0, 1, 1, color, light, center);
 		}
 	}
 

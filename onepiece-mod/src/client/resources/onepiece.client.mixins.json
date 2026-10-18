@@ -8,7 +8,8 @@
 		"PlayerModelMixin",
 		"MinecraftMixin",
 		"CameraMixin",
-		"LivingEntityRendererMixin"
+		"LivingEntityRendererMixin",
+		"GameRendererMixin"
 	],
 	"injectors": { "defaultRequire": 1 }
 }

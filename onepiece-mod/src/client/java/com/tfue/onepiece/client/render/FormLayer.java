@@ -89,7 +89,7 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 				}
 			}
 			case KAIDO -> {
-				float horns = form == Form.KAIDO_HYBRID ? 1.5F : 1.0F;
+				float horns = form == Form.KAIDO_HYBRID ? 0.85F : 0.6F;
 				part(poseStack, m.head, () -> kaidoHorns(poseStack, collector, light, horns));
 				if (info.anim() != Anim.BREATH) {
 					part(poseStack, m.rightArm, () -> club(poseStack, collector, light, info.armament()));
@@ -283,10 +283,10 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	private static void kaidoHorns(PoseStack poseStack, SubmitNodeCollector collector, int light, float size) {
 		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(HORN), (pose, buf) -> {
 			for (int side = -1; side <= 1; side += 2) {
-				Vec3 a = new Vec3(side * 3.4F * PX, -6.8F * PX, -0.5F * PX);
-				Vec3 b = a.add(side * 2.6F * PX * size, -3.6F * PX * size, 1.4F * PX * size);
-				Vec3 c = b.add(side * 1.4F * PX * size, -4.4F * PX * size, 3.2F * PX * size);
-				Vec3 d = c.add(side * 0.2F * PX * size, -2.4F * PX * size, 3.0F * PX * size);
+				Vec3 a = new Vec3(side * 3.2F * PX, -7.0F * PX, -1.0F * PX);
+				Vec3 b = a.add(side * 2.0F * PX * size, -4.5F * PX * size, 0.6F * PX * size);
+				Vec3 c = b.add(side * 0.8F * PX * size, -4.6F * PX * size, 2.0F * PX * size);
+				Vec3 d = c.add(side * -0.4F * PX * size, -3.0F * PX * size, 2.6F * PX * size);
 				Geo.tube(buf, pose, a, b, 2.0F * PX * size, 0.2F, 0xFFFFFFFF, light);
 				Geo.tube(buf, pose, b, c, 1.6F * PX * size, 0.2F, 0xFFFFFFFF, light);
 				Geo.tube(buf, pose, c, d, 1.0F * PX * size, 0.2F, 0xFFE8E0D0, light);

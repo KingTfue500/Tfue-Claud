@@ -188,8 +188,9 @@ public final class Powers {
 			default -> {
 			}
 		}
-		player.sendOverlayMessage(Component.translatable(form.translationKey()).withColor(form.color & 0xFFFFFF).withStyle(ChatFormatting.BOLD));
-		if (form.hasCutscene()) {
+		if (!form.hasCutscene()) {
+			player.sendOverlayMessage(Component.translatable(form.translationKey()).withColor(form.color & 0xFFFFFF).withStyle(ChatFormatting.BOLD));
+		} else {
 			// Brief protection while the cutscene plays.
 			player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 50, 4, false, false, false));
 			sendCutscene(player, form);

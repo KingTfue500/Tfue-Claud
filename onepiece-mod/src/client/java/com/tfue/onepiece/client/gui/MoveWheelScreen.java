@@ -167,13 +167,28 @@ public class MoveWheelScreen extends Screen {
 		if (this.hovered >= 0 && this.hovered < count) {
 			Entry entry = this.entries.get(this.hovered);
 			Component name = entry.name().copy().withStyle(ChatFormatting.BOLD);
-			g.centeredText(this.font, name, cx, cy - 14, 0xFF000000 | brighten(entry.color()));
-			g.centeredText(this.font, entry.line1(), cx, cy - 1, 0xFFE8E8E8);
-			g.centeredText(this.font, entry.line2(), cx, cy + 10, 0xFFB0B0B0);
+			this.centered(g, name, cx, cy - 14, 120, 0xFF000000 | brighten(entry.color()));
+			this.centered(g, entry.line1(), cx, cy - 1, 80, 0xFFE8E8E8);
+			this.centered(g, entry.line2(), cx, cy + 10, 80, 0xFFB0B0B0);
 		} else {
 			g.centeredText(this.font, this.title, cx, cy - 4, 0xFFFFFFFF);
 		}
 		g.centeredText(this.font, Component.translatable(this.forms ? "gui.onepiece.form_hint" : "gui.onepiece.move_hint"), cx, cy + ringSize / 2 + 8, 0xFFC0C0C0);
+	}
+
+	/** Centered text that shrinks to fit {@code maxWidth}. */
+	private void centered(GuiGraphicsExtractor g, Component text, int x, int y, int maxWidth, int color) {
+		int width = this.font.width(text);
+		if (width <= maxWidth) {
+			g.centeredText(this.font, text, x, y, color);
+			return;
+		}
+		float scale = maxWidth / (float) width;
+		g.pose().pushMatrix();
+		g.pose().translate(x, y + (1.0F - scale) * 4.0F);
+		g.pose().scale(scale, scale);
+		g.centeredText(this.font, text, 0, 0, color);
+		g.pose().popMatrix();
 	}
 
 	private static int brighten(int color) {

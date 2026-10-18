@@ -49,7 +49,7 @@ public final class PowerHud {
 		int y = h - 52;
 		GuiDraw.image(g, FRAME, x, y, 150, 46, 512, 160, 0xF0FFFFFF);
 		GuiDraw.image(g, GuiDraw.tex("emblems/" + data.fighter().id()), x + 5, y + 6, 34, 34, 128, 128, 0xFFFFFFFF);
-		g.text(mc.font, Component.translatable(form.translationKey()).withStyle(ChatFormatting.BOLD), x + 44, y + 7, color, true);
+		fitText(g, mc, Component.translatable(form.translationKey()).withStyle(ChatFormatting.BOLD), x + 44, y + 7, 100, color);
 		float target = data.stamina() / PowerData.MAX_STAMINA;
 		shownStamina = shownStamina < 0 ? target : Mth.lerp(0.25F, shownStamina, target);
 		GuiDraw.image(g, BAR, x + 44, y + 19, 98, 8, 256, 32, 0xFF303030);
@@ -70,7 +70,7 @@ public final class PowerHud {
 			GuiDraw.image(g, FRAME, rx, y, 150, 46, 512, 160, 0xF0FFFFFF);
 			GuiDraw.image(g, SLOT, rx + 4, y + 5, 36, 36, 128, 128, color);
 			GuiDraw.image(g, GuiDraw.tex("icons/" + move.icon().texture()), rx + 10, y + 11, 24, 24, 64, 64, left > 0 ? 0xFF707070 : 0xFFFFFFFF);
-			g.text(mc.font, Component.translatable(move.translationKey()).withStyle(ChatFormatting.BOLD), rx + 44, y + 9, 0xFFFFFFFF, true);
+			fitText(g, mc, Component.translatable(move.translationKey()).withStyle(ChatFormatting.BOLD), rx + 44, y + 9, 100, 0xFFFFFFFF);
 			if (left > 0) {
 				float frac = left / (float) move.cooldown();
 				g.fill(rx + 44, y + 22, rx + 44 + (int) (98 * frac), y + 25, 0xFFE04040);
@@ -80,6 +80,21 @@ public final class PowerHud {
 			}
 			g.text(mc.font, Component.translatable("gui.onepiece.cost_short", move.cost()), rx + 146 - mc.font.width(Component.translatable("gui.onepiece.cost_short", move.cost())), y + 29, 0xFFB0B0B0, true);
 		}
+	}
+
+	/** Draws text, shrinking it so it never runs past {@code maxWidth}. */
+	private static void fitText(GuiGraphicsExtractor g, Minecraft mc, Component text, int x, int y, int maxWidth, int color) {
+		int width = mc.font.width(text);
+		if (width <= maxWidth) {
+			g.text(mc.font, text, x, y, color, true);
+			return;
+		}
+		float scale = maxWidth / (float) width;
+		g.pose().pushMatrix();
+		g.pose().translate(x, y + (1.0F - scale) * 4.0F);
+		g.pose().scale(scale, scale);
+		g.text(mc.font, text, 0, 0, color, true);
+		g.pose().popMatrix();
 	}
 
 	private static void haki(GuiGraphicsExtractor g, int x, int y, String type, boolean on, int color) {

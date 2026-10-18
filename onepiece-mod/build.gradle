@@ -13,6 +13,15 @@ repositories {
 loom {
 	splitEnvironmentSourceSets()
 
+	runs {
+		client {
+			runDir "run-client"
+			if (project.hasProperty("devcam")) {
+				vmArg "-Donepiece.devcam=${project.property('devcam')}"
+			}
+		}
+	}
+
 	mods {
 		"onepiece" {
 			sourceSet sourceSets.main

@@ -427,7 +427,7 @@ public final class Moves {
 		sound(p, ModSounds.INFLATE, 1.2F, 0.6F);
 		Scheduler.later(p, windup, () -> {
 			Vec3 dir = p.getLookAngle();
-			VfxEntity fist = VfxEntity.create(lvl(p), VfxType.GIANT_FIST, shoulder(p, true).add(dir.scale(1.5)), color, size, 40)
+			VfxEntity fist = VfxEntity.create(lvl(p), VfxType.GIANT_FIST, shoulder(p, true).add(dir.scale(1.5 + size * 0.6)), color, size, 40)
 				.owner(p).variant(look).projectile(dir.scale(1.6), damage, knock, size * 0.7F).upward(0.5F).impact(Powers.view(p).form().color);
 			if (pierce) {
 				fist.pierce().spin(1.0F);
@@ -444,7 +444,7 @@ public final class Moves {
 			if (tick % 4 == 0) {
 				Vec3 dir = p.getLookAngle();
 				Vec3 spread = right(p).scale((p.getRandom().nextFloat() - 0.5) * 5.0).add(0, (p.getRandom().nextFloat() - 0.3) * 3.0, 0);
-				VfxEntity.create(lvl(p), VfxType.GIANT_FIST, shoulder(p, tick % 8 == 0).add(dir.scale(1.5)).add(spread.scale(0.4)), color, size, 24)
+				VfxEntity.create(lvl(p), VfxType.GIANT_FIST, shoulder(p, tick % 8 == 0).add(dir.scale(1.5 + size * 0.6)).add(spread.scale(0.4)), color, size, 24)
 					.owner(p).variant(look).projectile(dir.scale(1.8).add(spread.scale(0.03)), damage, 3.0F, size * 0.7F).impact(Powers.view(p).form().color).spawn();
 				if (tick % 8 == 0) {
 					sound(p, ModSounds.HEAVY_IMPACT, 0.7F, 1.3F);
@@ -493,7 +493,7 @@ public final class Moves {
 		Scheduler.later(p, 6, () -> {
 			for (int n = 0; n < count; n++) {
 				Vec3 dir = p.getLookAngle().add(right(p).scale((n - (count - 1) / 2.0) * 0.4)).normalize();
-				VfxEntity.create(lvl(p), VfxType.GIANT_FIST, shoulder(p, n % 2 == 0).add(dir.scale(1.5)), HAKI_BLACK, size, 50)
+				VfxEntity.create(lvl(p), VfxType.GIANT_FIST, shoulder(p, n % 2 == 0).add(dir.scale(1.5 + size * 0.6)), HAKI_BLACK, size, 50)
 					.owner(p).variant(LOOK_GEAR4).projectile(dir.scale(1.3), damage, 7.0F, size * 0.7F).homing().impact(Powers.view(p).form().color).spawn();
 			}
 			sound(p, ModSounds.SNAP, 1.2F, 0.6F);

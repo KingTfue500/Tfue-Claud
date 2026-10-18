@@ -163,7 +163,7 @@ public final class AuraRenderer {
 				Vec3 a = at.add((random.nextFloat() - 0.5) * 0.3, (random.nextFloat() - 0.5) * 0.4, (random.nextFloat() - 0.5) * 0.3);
 				Vec3 b = a.add((random.nextFloat() - 0.5) * 0.4, (random.nextFloat() - 0.5) * 0.4, (random.nextFloat() - 0.5) * 0.4);
 				Vec3 c = b.add((random.nextFloat() - 0.5) * 0.3, (random.nextFloat() - 0.5) * 0.3, (random.nextFloat() - 0.5) * 0.3);
-				collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(GLOW), (pose, buf) -> {
+				collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(ModRenderTypes.tex("beam")), (pose, buf) -> {
 					Geo.beam(buf, pose, a, b, new Vec3(0, 100, 0), 0.05F, 0xFFC060FF, 0xFFC060FF, Geo.FULL_BRIGHT);
 					Geo.beam(buf, pose, b, c, new Vec3(0, 100, 0), 0.04F, 0xFFC060FF, 0x00C060FF, Geo.FULL_BRIGHT);
 					Geo.beam(buf, pose, a, b, new Vec3(100, 0, 0), 0.05F, 0xFFC060FF, 0xFFC060FF, Geo.FULL_BRIGHT);

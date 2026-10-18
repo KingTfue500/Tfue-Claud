@@ -28,7 +28,7 @@ def hair_messy(face, u, v, w, h):
     if face == 'back':
         return v <= 5 or (v == 6 and u % 2 == 0)
     if face == 'front':
-        return v <= 1 or (v == 2 and u in (0, 2, 3, 5, 7)) or (v == 3 and u in (0, 7))
+        return v == 0 or (v == 1 and u in (0, 1, 3, 4, 6, 7)) or (v == 2 and u in (0, 7))
     # sides: right face u=7 is the front edge, left face u=0 is the front edge
     front = u if face == 'left' else 7 - u
     return v <= 2 or (v <= 4 and front >= 3) or (v == 5 and front >= 5 and u % 2 == 0)
@@ -247,18 +247,17 @@ def luffy(name, tone=0xF2C094, hair=0x18141A, vest=0xC81E28, shorts=0x3E6FB4, sa
 
 
 def flame_marks(dark, glow):
+    """Gear 4's flame tattoos: licks of black flame on the chest, red flame streaks up the haki arms."""
+    chest = {(2, 1), (2, 2), (3, 0), (4, 0), (5, 1), (5, 2), (2, 3), (5, 3)}
+
     def m(part, face, u, v):
         if part == 'body' and face == 'front':
-            if (u in (2, 5) and v in (1, 2)) or (u in (3, 4) and v == 0):
-                return rgb(dark)
-            return None
-        if part == 'body':
-            if (u + v * 2) % 5 == 0 and v <= 4:
-                return rgb(dark)
-            return None
-        if part == 'arm':
-            if v <= 2 and (u + v) % 3 == 0:
-                return rgb(glow)
+            return rgb(dark) if (u, v) in chest else None
+        if part == 'arm' and face != 'top':
+            if v <= 7 and (u * 3 + v) % 5 == 0:
+                return rgb(glow) if v <= 2 else shade(rgb(glow), 0.55)
+        if part == 'leg' and (u * 3 + v) % 6 == 0:
+            return shade(rgb(glow), 0.5)
         return None
     return m
 

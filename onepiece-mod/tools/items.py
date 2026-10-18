@@ -151,7 +151,7 @@ def make_json():
             json.dump({'parent': 'minecraft:item/handheld' if name in handheld else 'minecraft:item/generated',
                        'textures': {'layer0': 'onepiece:item/' + name}}, f, indent=2)
     # The Straw Hat is drawn as a 3D model by the mod, so its armor layer is empty.
-    json.dump({'layers': {}}, open(os.path.join(ROOT, 'equipment', 'straw_hat.json'), 'w'), indent=2)
+    json.dump({'layers': {'humanoid': [{'texture': 'onepiece:straw_hat'}]}}, open(os.path.join(ROOT, 'equipment', 'straw_hat.json'), 'w'), indent=2)
     json.dump({'layers': {'humanoid': [{'texture': 'onepiece:zoro_bandana'}]}}, open(os.path.join(ROOT, 'equipment', 'zoro_bandana.json'), 'w'), indent=2)
     json.dump({'layers': {'humanoid': [{'texture': 'onepiece:sanji_suit'}]}}, open(os.path.join(ROOT, 'equipment', 'sanji_suit.json'), 'w'), indent=2)
 
@@ -171,6 +171,8 @@ def armor_textures():
     for x, y in ((26, 11), (27, 11), (27, 12), (28, 13), (26, 12)):
         bandana.putpixel((x, y), h(0x1A1A20))
     bandana.save(os.path.join(out, 'zoro_bandana.png'))
+    # The Straw Hat is drawn in 3D by the mod; its armor layer is fully transparent.
+    Image.new('RGBA', (64, 32)).save(os.path.join(out, 'straw_hat.png'))
     suit = Image.new('RGBA', (64, 32))
     K, k, B, T = h(0x16161C), h(0x24242C), h(0x3A5ACF), h(0x0A0A10)
     # body faces: top(20,16) bottom(28,16) right(16,20) front(20,20) left(28,20) back(32,20)
