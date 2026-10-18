@@ -27,6 +27,10 @@ public final class Geo {
 		return ARGB.color(a, ARGB.red(color), ARGB.green(color), ARGB.blue(color));
 	}
 
+	public static int lerpColor(int a, int b, float t) {
+		return ARGB.srgbLerp(Math.max(0.0F, Math.min(1.0F, t)), a, b);
+	}
+
 	public static float luminance(int color) {
 		return (ARGB.red(color) * 0.299F + ARGB.green(color) * 0.587F + ARGB.blue(color) * 0.114F) / 255.0F;
 	}
@@ -90,7 +94,13 @@ public final class Geo {
 		Vec3 n = p1.subtract(p0).cross(p3.subtract(p0));
 		n = n.lengthSqr() > 1.0E-12 ? n.normalize() : new Vec3(0, 1, 0);
 		if (center != null && n.dot(p0.add(p2).scale(0.5).subtract(center)) < 0) {
+			// Lit render types shade by which side of a face is visible, so the winding has to match the outward normal too.
 			n = n.scale(-1);
+			vn(b, pose, p0, u0, v0, color, light, n);
+			vn(b, pose, p3, u0, v1, color, light, n);
+			vn(b, pose, p2, u1, v1, color, light, n);
+			vn(b, pose, p1, u1, v0, color, light, n);
+			return;
 		}
 		vn(b, pose, p0, u0, v0, color, light, n);
 		vn(b, pose, p1, u1, v0, color, light, n);
@@ -199,10 +209,11 @@ public final class Geo {
 			Vec3 d1 = s.scale(Math.cos(a1)).add(u.scale(Math.sin(a1)));
 			float t0 = n / (float) sides;
 			float t1 = (n + 1) / (float) sides;
+			// Wound so the outside is the front face, which lit render types need to shade it correctly.
 			vn(buf, pose, a.add(d0.scale(r0)), t0, 0, color, light, d0);
-			vn(buf, pose, a.add(d1.scale(r0)), t1, 0, color, light, d1);
-			vn(buf, pose, b.add(d1.scale(r1)), t1, vLen, color, light, d1);
 			vn(buf, pose, b.add(d0.scale(r1)), t0, vLen, color, light, d0);
+			vn(buf, pose, b.add(d1.scale(r1)), t1, vLen, color, light, d1);
+			vn(buf, pose, a.add(d1.scale(r0)), t1, 0, color, light, d1);
 		}
 	}
 }

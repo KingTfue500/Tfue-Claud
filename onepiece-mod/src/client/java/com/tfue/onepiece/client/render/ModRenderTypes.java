@@ -28,6 +28,20 @@ public final class ModRenderTypes {
 			.withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
 			.build());
 
+	/** Translucent, double-sided and lit only by the light map (no sun shading): flat sprites look the same from both sides. */
+	public static final RenderPipeline FLAT_PIPELINE = RenderPipelines.register(
+		RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
+			.withLocation(OnePiece.id("pipeline/flat"))
+			.withShaderDefine("ALPHA_CUTOUT", 0.002F)
+			.withShaderDefine("NO_CARDINAL_LIGHTING")
+			.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
+			.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+			.withCull(false)
+			.build());
+
+	private static final Function<Identifier, RenderType> FLAT = Util.memoize(texture -> RenderType.create("onepiece_flat",
+		RenderSetup.builder(FLAT_PIPELINE).withTexture("Sampler0", texture).useLightmap().useOverlay().sortOnUpload().createRenderSetup()));
+
 	private static final Function<Identifier, RenderType> GLOW = Util.memoize(texture -> RenderType.create("onepiece_glow",
 		RenderSetup.builder(GLOW_PIPELINE).withTexture("Sampler0", texture).useOverlay().sortOnUpload().createRenderSetup()));
 
@@ -38,7 +52,12 @@ public final class ModRenderTypes {
 		return GLOW.apply(texture);
 	}
 
-	/** Lit, translucent, double-sided: dark smoke, clouds, haki shells. */
+	/** Unlit (light map only) translucent: smoke, clouds, cloth and other flat or open shapes. */
+	public static RenderType flat(Identifier texture) {
+		return FLAT.apply(texture);
+	}
+
+	/** Lit, translucent, double-sided: solid shapes whose faces wind outward (boxes, tubes, fists). */
 	public static RenderType soft(Identifier texture) {
 		return RenderTypes.entityTranslucent(texture);
 	}

@@ -94,7 +94,7 @@ public final class AuraRenderer {
 		poseStack.translate(p.x, p.y, p.z);
 		poseStack.mulPose(camera.orientation);
 		poseStack.mulPose(Axis.ZP.rotationDegrees(roll));
-		collector.submitCustomGeometry(poseStack, additive ? ModRenderTypes.glow(texture) : ModRenderTypes.soft(texture),
+		collector.submitCustomGeometry(poseStack, additive ? ModRenderTypes.glow(texture) : ModRenderTypes.flat(texture),
 			(pose, buf) -> Geo.billboard(buf, pose, 0, 0, size, u0, 0, u1, 1, color, Geo.FULL_BRIGHT));
 		poseStack.popPose();
 	}

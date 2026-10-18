@@ -224,12 +224,12 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	// ------------------------------------------------------------------ Luffy and Sanji
 
 	private static void strawHat(PoseStack poseStack, SubmitNodeCollector collector, int light) {
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(STRAW), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(STRAW), (pose, buf) -> {
 			Geo.cylinder(buf, pose, 4.5F * PX, 4.3F * PX, -7.6F * PX, -11.2F * PX, 20, 4, 0xFFFFFFFF, light);
 			Geo.annulus(buf, pose, 0.0F, 4.3F * PX, -11.2F * PX, 0.0F, 20, 0xFFFFFFFF, light);
 			Geo.annulus(buf, pose, 4.4F * PX, 9.0F * PX, -7.5F * PX, 0.6F * PX, 28, 0xFFFFFFFF, light);
 		});
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(WHITE), (pose, buf) ->
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(WHITE), (pose, buf) ->
 			Geo.cylinder(buf, pose, 4.56F * PX, 4.5F * PX, -7.6F * PX, -8.9F * PX, 20, 1, 0xFFC81E28, light));
 	}
 
@@ -343,7 +343,7 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	// ------------------------------------------------------------------ Lucci
 
 	private static void topHat(PoseStack poseStack, SubmitNodeCollector collector, int light) {
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(WHITE), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(WHITE), (pose, buf) -> {
 			Geo.cylinder(buf, pose, 3.9F * PX, 3.9F * PX, -7.8F * PX, -14.0F * PX, 18, 1, 0xFF15151A, light);
 			Geo.annulus(buf, pose, 0.0F, 3.9F * PX, -14.0F * PX, 0.0F, 18, 0xFF1C1C22, light);
 			Geo.annulus(buf, pose, 3.8F * PX, 6.6F * PX, -7.8F * PX, 0.2F * PX, 22, 0xFF15151A, light);

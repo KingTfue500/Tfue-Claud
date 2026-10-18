@@ -34,7 +34,9 @@ public enum VfxType {
 	/** Claw marks (Lucci). */
 	CLAW,
 	/** Cracked ground left behind by huge slams. */
-	CRATER;
+	CRATER,
+	/** Wobbling mochi dome that follows its owner (Mochi Wall). */
+	MOCHI_DOME;
 
 	public static VfxType byId(int id) {
 		VfxType[] values = values();

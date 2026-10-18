@@ -187,12 +187,12 @@ public final class Moves {
 		add("flame_cloud_dash", KAIDO_DRAGON, 14, 20, DASH, Icon.CLOUD, p -> dash(p, 22, 20, 5.0F, 0xFFFF9A40, true));
 
 		// ===================== KATAKURI: MOCHI =====================
-		add("mochi_fist", BASE_KATAKURI, 10, 16, PUNCH_RIGHT, Icon.MOCHI, p -> stretchPunch(p, 20, 14, 3.0F, 1.0, false, 1.6F, true));
+		add("mochi_fist", BASE_KATAKURI, 10, 16, PUNCH_RIGHT, Icon.MOCHI, p -> stretchPunch(p, 20, 14, 3.0F, 1.0, false, 2.2F, true));
 		add("power_mochi", BASE_KATAKURI, 30, 70, CHARGE_PUNCH, Icon.GIANT_FIST, p -> chargedFist(p, 8, 4.5F, 36, 8.0F, MOCHI, LOOK_MOCHI));
 		add("donut_barrage", BASE_KATAKURI, 40, 140, GATLING, Icon.GATLING, p -> giantGatling(p, 36, 2.4F, 12, LOOK_MOCHI, MOCHI));
 		add("mochi_trident", BASE_KATAKURI, 20, 40, PUNCH_RIGHT, Icon.TRIDENT, p -> trident(p, 14, 26));
 		add("flowing_mochi", BASE_KATAKURI, 22, 60, BAZOOKA, Icon.MOCHI, p -> flowingMochi(p));
-		add("mochi_wall", BASE_KATAKURI, 20, 160, GUARD, Icon.SHIELD, p -> balloon(p, 100, 2.0F));
+		add("mochi_wall", BASE_KATAKURI, 20, 160, GUARD, Icon.SHIELD, p -> mochiWall(p));
 
 		// ===================== KATAKURI: AWAKENED =====================
 		add("buso_kirimochi", KATAKURI_AWAKENED, 50, 160, GATLING, Icon.GATLING, p -> giantGatling(p, 40, 3.0F, 20, LOOK_HAKI, HAKI_BLACK));
@@ -1049,14 +1049,24 @@ public final class Moves {
 
 	static void flowingMochi(LivingEntity p) {
 		sound(p, ModSounds.STRETCH, 1.4F, 0.5F);
-		for (LivingEntity e : Combat.inCone(p, 18, 40)) {
+		List<LivingEntity> caught = Combat.inCone(p, 18, 40);
+		if (caught.isEmpty()) {
+			VfxEntity.create(lvl(p), VfxType.STRETCH_ARM, shoulder(p, true), WHITE, 2.8F, 14).owner(p).target(Combat.rayEnd(p, 14)).variant(LOOK_MOCHI).spin(1.0F).spawn();
+		}
+		for (LivingEntity e : caught) {
 			Vec3 pull = p.position().subtract(e.position()).normalize().scale(1.6);
 			e.setDeltaMovement(pull.x, 0.4, pull.z);
 			e.hurtMarked = true;
 			e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 80, 3));
 			Combat.hit(p, e, 8, Vec3.ZERO, 0.0F, 0.0F, false);
-			VfxEntity.create(lvl(p), VfxType.STRETCH_ARM, shoulder(p, true), WHITE, 2.2F, 14).owner(p).target(e.getBoundingBox().getCenter()).variant(LOOK_MOCHI).spawn();
+			VfxEntity.create(lvl(p), VfxType.STRETCH_ARM, shoulder(p, true), WHITE, 2.8F, 14).owner(p).target(e.getBoundingBox().getCenter()).variant(LOOK_MOCHI).spawn();
 		}
+	}
+
+	static void mochiWall(LivingEntity p) {
+		balloon(p, 100, 2.0F);
+		VfxEntity.create(lvl(p), VfxType.MOCHI_DOME, p.position(), MOCHI, p.getBbHeight() * 0.95F, 100).owner(p).spawn();
+		shock(lvl(p), p.position().add(0, 0.1, 0), 0xFFFFE4F0, p.getBbHeight() * 1.4F, 12);
 	}
 
 	static void mochiPillars(LivingEntity p) {
@@ -1118,10 +1128,11 @@ public final class Moves {
 	static void shigan(LivingEntity p, double range, float damage) {
 		sound(p, ModSounds.WHOOSH, 1.0F, 1.8F);
 		LivingEntity target = Combat.firstInLine(p, range, 0.9);
+		Vec3 end = target != null ? target.getBoundingBox().getCenter() : Combat.rayEnd(p, range);
+		VfxEntity.create(lvl(p), VfxType.DASH_TRAIL, shoulder(p, true), 0xFFFFF0C0, 1.0F, 8).target(end).owner(p).spawn();
+		impact(lvl(p), end, target != null ? WHITE : 0xFFFFF0C0, target != null ? 1.0F : 0.6F);
 		if (target != null) {
 			Combat.hit(p, target, damage, p.getLookAngle(), 1.5F, 0.1F, false);
-			impact(lvl(p), target.getBoundingBox().getCenter(), WHITE, 1.0F);
-			VfxEntity.create(lvl(p), VfxType.DASH_TRAIL, shoulder(p, true), 0xFFFFF0C0, 1.0F, 6).target(target.getBoundingBox().getCenter()).owner(p).spawn();
 			sound(p, ModSounds.PUNCH, 1.2F, 1.6F);
 		}
 	}
@@ -1181,7 +1192,7 @@ public final class Moves {
 	static void claw(LivingEntity p, float damage) {
 		ServerLevel level = lvl(p);
 		Vec3 front = p.getEyePosition().add(p.getLookAngle().scale(2.2));
-		VfxEntity.create(level, VfxType.CLAW, front, Powers.view(p).form() == Form.LUCCI_AWAKENED ? 0xFFFF4A30 : 0xFFFFE070, 3.6F, 12).facing(p.getLookAngle()).spawn();
+		VfxEntity.create(level, VfxType.CLAW, front, Powers.view(p).form() == Form.LUCCI_AWAKENED ? 0xFFFF4A30 : 0xFFFFE070, 3.6F, 16).facing(p.getLookAngle()).spawn();
 		Combat.hitCone(p, 5.0, 55, damage, 3.0F, 0.3F, false);
 		sound(p, ModSounds.SLASH, 1.4F, 1.4F);
 	}

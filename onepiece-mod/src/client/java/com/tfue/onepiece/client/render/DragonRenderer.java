@@ -70,7 +70,7 @@ public final class DragonRenderer {
 			poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
 			poseStack.mulPose(Axis.XP.rotationDegrees(-35.0F));
 			float mh = w * (1.4F + Mth.sin(t * 0.2F + n) * 0.15F);
-			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(MANE), (pose, buf) -> Geo.crossed(buf, pose, w * 0.45F, -mh, 0, 1, 0xFFFFFFFF, light));
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(MANE), (pose, buf) -> Geo.crossed(buf, pose, w * 0.45F, -mh, 0, 1, 0xFFFFFFFF, light));
 			poseStack.popPose();
 		}
 		// Small clawed arms.
@@ -145,7 +145,7 @@ public final class DragonRenderer {
 			}
 		});
 		// Whiskers drifting in the wind.
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(MANE), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(MANE), (pose, buf) -> {
 			for (int side = -1; side <= 1; side += 2) {
 				Vec3 prev = new Vec3(side * s * 0.7, s * 0.1, s * 3.0);
 				for (int n = 1; n <= 6; n++) {
@@ -178,7 +178,7 @@ public final class DragonRenderer {
 		poseStack.pushPose();
 		poseStack.translate(p.x, p.y, p.z);
 		poseStack.mulPose(camera.orientation);
-		collector.submitCustomGeometry(poseStack, additive ? ModRenderTypes.glow(texture) : ModRenderTypes.soft(texture),
+		collector.submitCustomGeometry(poseStack, additive ? ModRenderTypes.glow(texture) : ModRenderTypes.flat(texture),
 			(pose, buf) -> Geo.billboard(buf, pose, 0, 0, size, u0, 0, u1, 1, color, Geo.FULL_BRIGHT));
 		poseStack.popPose();
 	}

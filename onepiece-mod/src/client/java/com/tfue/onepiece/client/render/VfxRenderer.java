@@ -84,6 +84,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		Vec3 pos = new Vec3(state.x, state.y, state.z);
 		state.target = entity.getTarget().subtract(pos);
 		state.start = null;
+		state.ownerPos = Vec3.ZERO;
 		Entity owner = entity.getOwner();
 		if (owner != null) {
 			Vec3 ownerPos = owner.getPosition(partialTicks);
@@ -124,6 +125,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			case SPEAR -> spear(state, poseStack, collector, q, camRel);
 			case CLAW -> claw(state, poseStack, collector, q);
 			case CRATER -> crater(state, poseStack, collector, q);
+			case MOCHI_DOME -> mochiDome(state, poseStack, collector, q, camRel);
 		}
 	}
 
@@ -134,7 +136,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 	}
 
 	private static RenderType glowOrSoft(int color, Identifier texture) {
-		return Geo.luminance(color) < 0.22F ? ModRenderTypes.soft(texture) : ModRenderTypes.glow(texture);
+		return Geo.luminance(color) < 0.22F ? ModRenderTypes.flat(texture) : ModRenderTypes.glow(texture);
 	}
 
 	private static void faceDirection(PoseStack poseStack, float yaw, float pitch) {
@@ -268,13 +270,65 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		poseStack.mulPose(Axis.YP.rotationDegrees(state.seed * 47 % 360));
 		int color = Geo.alpha(0xFFFFFFFF, fade * 0.9F);
 		int light = state.lightCoords;
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(CRACKS), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(CRACKS), (pose, buf) -> {
 			Geo.v(buf, pose, -r, 0, -r, 0, 0, color, light);
 			Geo.v(buf, pose, -r, 0, r, 0, 1, color, light);
 			Geo.v(buf, pose, r, 0, r, 1, 1, color, light);
 			Geo.v(buf, pose, r, 0, -r, 1, 0, color, light);
 		});
 		poseStack.popPose();
+	}
+
+	/** Mochi Wall: a dome of mochi that bulges up around the owner, wobbles, then sags back into the ground. */
+	private void mochiDome(State state, PoseStack poseStack, SubmitNodeCollector collector, float q, Vec3 camRel) {
+		Vec3 center = state.ownerPos;
+		float grow = Math.min(1.0F, q / 0.12F);
+		grow = 1.0F - (1.0F - grow) * (1.0F - grow);
+		float sag = q > 0.85F ? (q - 0.85F) / 0.15F : 0.0F;
+		float r = state.size * (0.4F + 0.6F * grow);
+		float height = state.size * 1.2F * (1.0F - sag) * grow;
+		if (height < 0.05F) {
+			return;
+		}
+		// Seen from inside (first person) the shell turns see-through so it never blinds the owner.
+		boolean inside = camRel.subtract(center).horizontalDistance() < r && camRel.y - center.y < height;
+		float alpha = inside ? 0.25F : 0.94F;
+		int light = state.lightCoords;
+		float age = state.age;
+		poseStack.pushPose();
+		poseStack.translate(center.x, center.y, center.z);
+		int rings = 9;
+		int segments = 22;
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(WHITE), (pose, buf) -> {
+			for (int i = 0; i < rings; i++) {
+				double lat = (i + 0.5) / rings * Math.PI * 0.5;
+				for (int j = 0; j < segments; j++) {
+					// Fake soft shading from one side: pink-cream in the shadow, near white where the light hits.
+					double lon = (j + 0.5) / segments * Math.PI * 2;
+					float lit = (float) (0.5 + 0.35 * Math.sin(lat) + 0.3 * Math.cos(lon - 0.8) * Math.cos(lat));
+					int color = Geo.alpha(Geo.lerpColor(0xFFE6C3D2, 0xFFFFFCFD, lit), alpha);
+					Vec3 p0 = domePoint(i, j, rings, segments, r, height, age);
+					Vec3 p1 = domePoint(i, j + 1, rings, segments, r, height, age);
+					Vec3 p2 = domePoint(i + 1, j + 1, rings, segments, r, height, age);
+					Vec3 p3 = domePoint(i + 1, j, rings, segments, r, height, age);
+					float u0 = j / (float) segments * 4.0F;
+					float u1 = (j + 1) / (float) segments * 4.0F;
+					Geo.quad(buf, pose, p0, p1, p2, p3, u0, i / (float) rings, u1, (i + 1) / (float) rings, color, light, Vec3.ZERO);
+				}
+			}
+		});
+		poseStack.popPose();
+	}
+
+	/** A point on the dome: ring {@code i} from the ground up, segment {@code j} around, with a slow doughy wobble. */
+	private static Vec3 domePoint(int i, int j, int rings, int segments, float r, float height, float age) {
+		double lat = i / (double) rings * Math.PI * 0.5;
+		double lon = j / (double) segments * Math.PI * 2;
+		double wobble = 1.0 + 0.06 * Math.sin(lon * 3 + age * 0.25) * Math.cos(lat * 2 + age * 0.17);
+		double ring = Math.cos(lat) * r * wobble;
+		// The base flares out a little, like mochi pooling on the ground.
+		double flare = i == 0 ? 1.12 : 1.0;
+		return new Vec3(Math.cos(lon) * ring * flare, Math.sin(lat) * height * wobble, Math.sin(lon) * ring * flare);
 	}
 
 	/** Three raking claw marks (Lucci). */
@@ -436,7 +490,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		float height = state.size * 2.6F;
 		int color = state.color;
 		boolean dark = Geo.luminance(color) < 0.22F;
-		RenderType type = dark ? ModRenderTypes.soft(WIND) : ModRenderTypes.glow(WIND);
+		RenderType type = dark ? ModRenderTypes.flat(WIND) : ModRenderTypes.glow(WIND);
 		collector.submitCustomGeometry(poseStack, type, (pose, buf) -> {
 			int ribbons = 7;
 			int steps = 28;
@@ -569,7 +623,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 				paths[k][n] = p;
 			}
 		}
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(BEAM), (pose, buf) -> {
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(BEAM), (pose, buf) -> {
 			for (Vec3[] path : paths) {
 				for (int n = 0; n < path.length - 1; n++) {
 					Geo.beam(buf, pose, path[n], path[n + 1], camRel, 0.55F * (1 - n / (float) path.length) + 0.1F, Geo.alpha(0xFF0A0408, fade), Geo.alpha(0xFF0A0408, fade * 0.8F), Geo.FULL_BRIGHT);
@@ -583,7 +637,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 				}
 			}
 		});
-		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(BAND), (pose, buf) ->
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(BAND), (pose, buf) ->
 			ring(buf, pose, reach, reach * 0.35F, -0.9F, Geo.alpha(0xFF10040A, fade * 0.7F)));
 	}
 
@@ -642,7 +696,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			poseStack.translate(p.x, p.y, p.z);
 			poseStack.mulPose(camera.orientation);
 			poseStack.mulPose(Axis.ZP.rotationDegrees(random.nextFloat() * 360 + state.age * 2));
-			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(CLOUD), (pose, buf) -> Geo.billboard(buf, pose, 0, 0, size, 0, 0, 1, 1, c, Geo.FULL_BRIGHT));
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.flat(CLOUD), (pose, buf) -> Geo.billboard(buf, pose, 0, 0, size, 0, 0, 1, 1, c, Geo.FULL_BRIGHT));
 			poseStack.popPose();
 		}
 	}
