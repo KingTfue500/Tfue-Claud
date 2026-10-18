@@ -1038,7 +1038,7 @@ public final class Moves {
 
 	static void trident(LivingEntity p, double range, float damage) {
 		Vec3 end = Combat.rayEnd(p, range);
-		VfxEntity.create(lvl(p), VfxType.SPEAR, shoulder(p, true), Powers.view(p).armament() || Powers.view(p).form() == Form.KATAKURI_AWAKENED ? HAKI_BLACK : MOCHI, 1.4F, 14)
+		VfxEntity.create(lvl(p), VfxType.SPEAR, shoulder(p, true), Powers.view(p).armament() || Powers.view(p).form() == Form.KATAKURI_AWAKENED ? HAKI_BLACK : MOCHI, 2.4F, 14)
 			.owner(p).target(end).spawn();
 		sound(p, ModSounds.STRETCH, 1.4F, 0.7F);
 		for (LivingEntity e : Combat.inLine(p, range, 1.2)) {
@@ -1181,7 +1181,7 @@ public final class Moves {
 	static void claw(LivingEntity p, float damage) {
 		ServerLevel level = lvl(p);
 		Vec3 front = p.getEyePosition().add(p.getLookAngle().scale(2.2));
-		VfxEntity.create(level, VfxType.CLAW, front, Powers.view(p).form() == Form.LUCCI_AWAKENED ? 0xFFFF4A30 : 0xFFFFE070, 2.6F, 12).facing(p.getLookAngle()).spawn();
+		VfxEntity.create(level, VfxType.CLAW, front, Powers.view(p).form() == Form.LUCCI_AWAKENED ? 0xFFFF4A30 : 0xFFFFE070, 3.6F, 12).facing(p.getLookAngle()).spawn();
 		Combat.hitCone(p, 5.0, 55, damage, 3.0F, 0.3F, false);
 		sound(p, ModSounds.SLASH, 1.4F, 1.4F);
 	}
