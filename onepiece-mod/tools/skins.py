@@ -269,11 +269,18 @@ def flame_marks(dark, glow):
     def m(part, face, u, v):
         if part == 'body' and face == 'front':
             return rgb(dark) if (u, v) in chest else None
-        if part == 'arm' and face != 'top':
-            if v <= 7 and (u * 3 + v) % 5 == 0:
-                return rgb(glow) if v <= 2 else shade(rgb(glow), 0.55)
-        if part == 'leg' and (u * 3 + v) % 6 == 0:
-            return shade(rgb(glow), 0.5)
+        if part == 'arm' and face not in ('top', 'bottom'):
+            # A jagged red flame edge across the black haki arm, like the anime's markings.
+            lick = 3 + (u * 5 + len(face) * 3) % 4
+            if v == lick:
+                return rgb(glow)
+            if v == lick - 1 and (u + len(face)) % 2 == 0:
+                return shade(rgb(glow), 0.6)
+        if part == 'leg' and face not in ('top', 'bottom'):
+            # Darker flames rising from the feet.
+            lick = 1 + (u * 7 + len(face)) % 3
+            if v >= 11 - lick:
+                return shade(rgb(glow), 0.35 + 0.25 * (v - (11 - lick)) / float(lick))
         return None
     return m
 
