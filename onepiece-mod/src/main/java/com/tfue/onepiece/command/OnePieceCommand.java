@@ -226,7 +226,7 @@ public final class OnePieceCommand {
 				Powers.setForm(player, move.form(), true);
 			}
 			Powers.set(player, Powers.get(player).withAnim(move.anim(), player.level().getGameTime()));
-			move.action().run(player);
+			move.perform(player);
 			if (com.tfue.onepiece.power.Moves.ULTIMATES.contains(move.id())) {
 				net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
 					new com.tfue.onepiece.network.CutscenePayload(player.getId(), -1 - com.tfue.onepiece.power.Moves.indexOf(move)));

@@ -1,5 +1,6 @@
 package com.tfue.onepiece.power;
 
+import com.tfue.onepiece.OnePiece;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -55,7 +56,14 @@ public final class Scheduler {
 			if (!task.owner.isAlive() || task.owner.isRemoved()) {
 				continue;
 			}
-			boolean more = task.step.run(task.tick);
+			boolean more;
+			try {
+				more = task.step.run(task.tick);
+			} catch (RuntimeException e) {
+				// One broken step must never take the server tick down with it: drop that move and carry on.
+				OnePiece.LOGGER.error("One Piece move step failed for {}", task.owner.getName().getString(), e);
+				more = false;
+			}
 			task.tick++;
 			if (more && task.tick < task.length) {
 				keep.add(task);

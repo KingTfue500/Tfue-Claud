@@ -283,7 +283,7 @@ public final class Powers {
 			next = next.withStamina(data.stamina() - move.cost()).withCooldown(move.id(), now + move.cooldown());
 		}
 		set(player, next);
-		move.action().run(player);
+		move.perform(player);
 		if (Moves.ULTIMATES.contains(move.id()) && ServerPlayNetworking.canSend(player, com.tfue.onepiece.network.CutscenePayload.TYPE)) {
 			// Negative form ids mean "skill cutscene" for skill number -id - 1.
 			ServerPlayNetworking.send(player, new com.tfue.onepiece.network.CutscenePayload(player.getId(), -1 - Moves.indexOf(move)));

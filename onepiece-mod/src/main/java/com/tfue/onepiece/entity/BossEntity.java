@@ -212,7 +212,7 @@ public abstract class BossEntity extends Monster {
 		this.entityData.set(ANIM, pick.anim().ordinal());
 		this.entityData.set(ANIM_START, now);
 		this.cooldowns.put(pick.id(), now + (long) (pick.cooldown() * 0.7F) + 20);
-		pick.action().run(this);
+		pick.perform(this);
 		this.nextAttack = (this.isEnraged() ? 28 : 45) + this.random.nextInt(25);
 	}
 

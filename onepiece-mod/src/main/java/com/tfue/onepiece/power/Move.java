@@ -21,6 +21,15 @@ public record Move(String id, Form form, int cost, int cooldown, Anim anim, Icon
 		}
 	}
 
+	/** Runs the move. A move that fails is logged and skipped instead of crashing the server or kicking the player. */
+	public void perform(LivingEntity user) {
+		try {
+			this.action.run(user);
+		} catch (RuntimeException e) {
+			com.tfue.onepiece.OnePiece.LOGGER.error("One Piece move {} failed for {}", this.id, user.getName().getString(), e);
+		}
+	}
+
 	public String translationKey() {
 		return "move.onepiece." + id;
 	}
