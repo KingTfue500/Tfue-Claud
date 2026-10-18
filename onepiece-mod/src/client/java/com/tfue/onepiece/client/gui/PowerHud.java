@@ -55,10 +55,10 @@ public final class PowerHud {
 		int color = 0xFF000000 | form.color;
 
 		// Left panel: emblem, form name, stamina, Haki. On narrow screens both panels sit above the
-		// health and hunger bars instead of beside the hotbar.
+		// health and hunger bars and the action bar text (which ends 59 pixels above the bottom).
 		int x = 6;
 		boolean roomBeside = (w - 182) / 2 - 10 >= 150;
-		int y = roomBeside ? h - 52 : h - 106;
+		int y = roomBeside ? h - 52 : h - 122;
 		GuiDraw.image(g, FRAME, x, y, 150, 46, 512, 160, 0xF0FFFFFF);
 		GuiDraw.image(g, GuiDraw.tex("emblems/" + data.fighter().id()), x + 5, y + 6, 34, 34, 128, 128, 0xFFFFFFFF);
 		fitText(g, mc, Component.translatable(form.translationKey()).withStyle(ChatFormatting.BOLD), x + 44, y + 7, 100, color);
