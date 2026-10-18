@@ -40,6 +40,15 @@ public class BossRenderer<T extends BossEntity> extends LivingEntityRenderer<T, 
 		state.isSpectator = false;
 		state.id = entity.getId();
 		PowerData data = Powers.view(entity);
+		// 26.2 draws any AvatarRenderState with the player renderer, which reads the skin from the state.
+		state.skin = Skins.forForm(data.form(), net.minecraft.client.resources.DefaultPlayerSkin.getDefaultSkin());
+		state.showHat = true;
+		state.showJacket = true;
+		state.showLeftPants = true;
+		state.showRightPants = true;
+		state.showLeftSleeve = true;
+		state.showRightSleeve = true;
+		state.showCape = false;
 		float time = entity.level().getGameTime() + partialTicks;
 		state.setData(PowerRenderInfo.KEY, new PowerRenderInfo(data.fighter(), data.form(), data.anim(), data.animProgress(time),
 			data.armament(), false, time, false, false, false));

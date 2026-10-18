@@ -188,8 +188,8 @@ public final class PoseAnimator {
 		boolean gear4 = form.isGear4();
 		Anim anim = info.anim();
 		switch (anim) {
-			case PUNCH_RIGHT, PUNCH_LEFT -> {
-				boolean right = anim == Anim.PUNCH_RIGHT;
+			case PUNCH_RIGHT, PUNCH_LEFT, FINGER -> {
+				boolean right = anim != Anim.PUNCH_LEFT;
 				ModelPart arm = right ? m.rightArm : m.leftArm;
 				ModelPart other = right ? m.leftArm : m.rightArm;
 				float side = right ? 1 : -1;
@@ -310,7 +310,7 @@ public final class PoseAnimator {
 				m.body.xRot += 0.3F * out;
 				scale(m.rightArm, 1, 1 + 1.5F * up, 1);
 			}
-			case SWORD_SLASH -> {
+			case SWORD_SLASH, CLAW -> {
 				float e = seg(p, 0.0F, 0.35F);
 				float fade = 1 - seg(p, 0.75F, 1.0F);
 				m.rightArm.xRot = Mth.lerp(fade, m.rightArm.xRot, Mth.lerp(e, -2.5F, -0.45F));
@@ -347,7 +347,7 @@ public final class PoseAnimator {
 				m.leftLeg.xRot = Mth.lerp(e, m.leftLeg.xRot, 0.7F);
 				m.body.xRot += 0.35F * e;
 			}
-			case SWORD_RAISE -> {
+			case SWORD_RAISE, CLUB_SMASH -> {
 				float up = seg(p, 0.0F, 0.3F) * (1 - seg(p, 0.5F, 0.62F));
 				float down = seg(p, 0.5F, 0.62F) * (1 - seg(p, 0.85F, 1.0F));
 				float x = -2.9F * up - 0.35F * down + m.rightArm.xRot * (1 - up - down);
@@ -426,6 +426,37 @@ public final class PoseAnimator {
 				m.rightLeg.zRot += 0.22F * e;
 				m.leftLeg.zRot -= 0.22F * e;
 				m.head.xRot = Mth.lerp(e, m.head.xRot, 0.35F);
+			}
+			case BREATH -> {
+				float e = env(p, 0.12F, 0.2F);
+				m.head.xRot = Mth.lerp(e, m.head.xRot, m.head.xRot - 0.25F);
+				m.body.xRot += 0.3F * e;
+				m.rightArm.xRot = Mth.lerp(e, m.rightArm.xRot, 0.6F);
+				m.leftArm.xRot = Mth.lerp(e, m.leftArm.xRot, 0.6F);
+				m.rightArm.zRot = Mth.lerp(e, m.rightArm.zRot, 0.5F);
+				m.leftArm.zRot = Mth.lerp(e, m.leftArm.zRot, -0.5F);
+				m.rightLeg.xRot = Mth.lerp(e, m.rightLeg.xRot, 0.4F);
+				m.leftLeg.xRot = Mth.lerp(e, m.leftLeg.xRot, -0.3F);
+			}
+			case POUNCE -> {
+				float e = env(p, 0.12F, 0.3F);
+				m.rightArm.xRot = Mth.lerp(e, m.rightArm.xRot, aim - 0.3F);
+				m.leftArm.xRot = Mth.lerp(e, m.leftArm.xRot, aim - 0.3F);
+				m.rightArm.zRot = Mth.lerp(e, m.rightArm.zRot, -0.25F);
+				m.leftArm.zRot = Mth.lerp(e, m.leftArm.zRot, 0.25F);
+				m.rightLeg.xRot = Mth.lerp(e, m.rightLeg.xRot, 0.9F);
+				m.leftLeg.xRot = Mth.lerp(e, m.leftLeg.xRot, 0.6F);
+				m.body.xRot += 0.4F * e;
+			}
+			case GUARD -> {
+				float e = env(p, 0.1F, 0.15F);
+				m.rightArm.xRot = Mth.lerp(e, m.rightArm.xRot, -1.35F);
+				m.leftArm.xRot = Mth.lerp(e, m.leftArm.xRot, -1.35F);
+				m.rightArm.yRot = Mth.lerp(e, m.rightArm.yRot, -0.75F);
+				m.leftArm.yRot = Mth.lerp(e, m.leftArm.yRot, 0.75F);
+				m.rightLeg.zRot += 0.12F * e;
+				m.leftLeg.zRot -= 0.12F * e;
+				m.body.xRot += 0.1F * e;
 			}
 			case DASH -> {
 				float e = env(p, 0.1F, 0.4F);

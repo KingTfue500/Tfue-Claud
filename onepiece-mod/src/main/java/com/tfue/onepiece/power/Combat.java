@@ -52,6 +52,9 @@ public final class Combat {
 		if (target instanceof Player p && (p.isCreative() || p.isSpectator())) {
 			return;
 		}
+		if (!canHit(attacker, target, level)) {
+			return;
+		}
 		DamageSource source;
 		if (attacker instanceof Player player) {
 			source = level.damageSources().playerAttack(player);
@@ -71,8 +74,26 @@ public final class Combat {
 			flat = flat.normalize();
 		}
 		double resist = 1.0 - Math.min(0.9, target.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.KNOCKBACK_RESISTANCE));
+		if (attacker instanceof com.tfue.onepiece.entity.BossEntity && target instanceof Player) {
+			// Boss skills are tuned against mobs; keep players in the fight instead of across the map.
+			resist *= 0.3;
+		}
 		target.setDeltaMovement(target.getDeltaMovement().add(flat.x * knockback * 0.5 * resist, (upward + knockback * 0.08) * resist, flat.z * knockback * 0.5 * resist));
 		target.hurtMarked = true;
+	}
+
+	/** Never hit your own pets or armor stands, and respect the server's PvP setting. */
+	public static boolean canHit(@Nullable LivingEntity attacker, LivingEntity target, ServerLevel level) {
+		if (target instanceof net.minecraft.world.entity.decoration.ArmorStand) {
+			return false;
+		}
+		if (attacker != null && target instanceof net.minecraft.world.entity.OwnableEntity pet && pet.getOwner() == attacker) {
+			return false;
+		}
+		if (attacker instanceof Player && target instanceof Player && !level.isPvpAllowed()) {
+			return false;
+		}
+		return true;
 	}
 
 	public static List<LivingEntity> inSphere(@Nullable LivingEntity attacker, Vec3 center, double radius) {

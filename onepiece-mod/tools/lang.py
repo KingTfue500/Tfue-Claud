@@ -107,6 +107,11 @@ L = {
     'command.onepiece.form': 'Set form %s for %s player(s)', 'command.onepiece.infinite_on': 'Infinite stamina ON for %s player(s)',
     'command.onepiece.infinite_off': 'Infinite stamina OFF for %s player(s)', 'command.onepiece.reset': 'Reset powers of %s player(s)',
     'command.onepiece.kit': 'Gave the One Piece kit to %s player(s)', 'command.onepiece.boss': 'Summoned %s',
+    'message.onepiece.welcome.title': '=== One Piece: Straw Hat Powers ===',
+    'message.onepiece.welcome.1': 'Get powers: eat a Devil Fruit (Gum-Gum, Azure Dragon, Mochi, Leopard), right-click a katana, or read Sanji\'s Cook Book.',
+    'message.onepiece.welcome.2': 'R: tap to use your skill, hold for the skill wheel. V: hold for the form wheel, tap to go back to base.',
+    'message.onepiece.welcome.3': 'H / J / K: Armament, Observation and Conqueror\'s Haki. B: switch fighter. Space in mid-air: Sky Walk, Geppo or bounce.',
+    'message.onepiece.welcome.4': 'Operators: /onepiece unlockall, /onepiece boss kaido, /onepiece cast <skill>, /onepiece infinite true.',
     'command.onepiece.unknown_skill': 'Unknown skill', 'command.onepiece.cast': 'Used %s for %s player(s)',
     'command.onepiece.info': '%s: %s, %s, stamina %s, infinite %s',
 }

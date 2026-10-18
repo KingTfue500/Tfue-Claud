@@ -87,13 +87,13 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		if (owner != null) {
 			Vec3 ownerPos = owner.getPosition(partialTicks);
 			state.ownerPos = ownerPos.subtract(pos);
-			if (state.type == VfxType.STRETCH_ARM || state.type == VfxType.STRETCH_LEG) {
+			if (state.type == VfxType.STRETCH_ARM || state.type == VfxType.STRETCH_LEG || state.type == VfxType.SPEAR) {
 				float bodyYaw = owner instanceof LivingEntity living ? Mth.rotLerp(partialTicks, living.yBodyRotO, living.yBodyRot) : owner.getYRot();
 				float rad = bodyYaw * Mth.DEG_TO_RAD;
 				Vec3 right = new Vec3(-Mth.cos(rad), 0, -Mth.sin(rad));
 				float width = owner.getBbWidth() / 0.6F;
 				boolean left = (state.variant & 16) != 0;
-				Vec3 anchor = state.type == VfxType.STRETCH_ARM
+				Vec3 anchor = state.type != VfxType.STRETCH_LEG
 					? ownerPos.add(0, owner.getEyeHeight() * 0.85, 0).add(right.scale((left ? -0.36 : 0.36) * width))
 					: ownerPos.add(0, owner.getBbHeight() * 0.42, 0).add(right.scale(0.12 * width));
 				state.start = anchor.subtract(pos);
@@ -120,6 +120,8 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			case DRAGON -> dragon(state, poseStack, collector, q, camera);
 			case DASH_TRAIL -> dashTrail(state, poseStack, collector, q, camRel);
 			case SLASH_RING -> slashRing(state, poseStack, collector, q);
+			case SPEAR -> spear(state, poseStack, collector, q, camRel);
+			case CLAW -> claw(state, poseStack, collector, q);
 		}
 	}
 
@@ -217,6 +219,55 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 					Geo.beam(buf, pose, a, b, camRel, 0.05F * state.size, Geo.alpha(color, 0.0F), color, Geo.FULL_BRIGHT);
 				}
 			});
+		}
+	}
+
+	/** Katakuri's trident Mogura thrusting out and back. */
+	private void spear(State state, PoseStack poseStack, SubmitNodeCollector collector, float q, Vec3 camRel) {
+		Vec3 start = state.start != null ? state.start : Vec3.ZERO;
+		Vec3 end = start.lerp(state.target, extension(q));
+		Vec3 dir = end.subtract(start);
+		if (dir.lengthSqr() < 1.0E-4) {
+			return;
+		}
+		Vec3 f = dir.normalize();
+		Vec3 side = f.cross(new Vec3(0, 1, 0));
+		side = side.lengthSqr() > 1.0E-6 ? side.normalize() : new Vec3(1, 0, 0);
+		float w = 0.09F * state.size;
+		int color = state.color;
+		int light = state.lightCoords;
+		Vec3 headBase = end.subtract(f.scale(0.5 * state.size));
+		Vec3 crossA = headBase.add(side.scale(0.36 * state.size));
+		Vec3 crossB = headBase.subtract(side.scale(0.36 * state.size));
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(WHITE), (pose, buf) -> {
+			Geo.tube(buf, pose, start, headBase, w, 1.0F, color, light);
+			Geo.tube(buf, pose, crossA, crossB, w * 0.9F, 1.0F, color, light);
+			Geo.tube(buf, pose, headBase, end.add(f.scale(0.25 * state.size)), w * 0.9F, 1.0F, color, light);
+			Geo.tube(buf, pose, crossA, crossA.add(f.scale(0.6 * state.size)), w * 0.8F, 1.0F, color, light);
+			Geo.tube(buf, pose, crossB, crossB.add(f.scale(0.6 * state.size)), w * 0.8F, 1.0F, color, light);
+		});
+		if (q < 0.35F) {
+			int streak = Geo.luminance(color) < 0.22F ? 0xC0C060FF : 0xC0FFD0E8;
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(BEAM), (pose, buf) ->
+				Geo.beam(buf, pose, start, end, camRel, w * 6.0F, Geo.alpha(streak, 0.0F), streak, Geo.FULL_BRIGHT));
+		}
+	}
+
+	/** Three raking claw marks (Lucci). */
+	private void claw(State state, PoseStack poseStack, SubmitNodeCollector collector, float q) {
+		float fade = 1.0F - q * q;
+		float r = state.size * (0.8F + 0.3F * Math.min(1.0F, state.age / 3.0F));
+		int color = state.color;
+		for (int n = -1; n <= 1; n++) {
+			poseStack.pushPose();
+			faceDirection(poseStack, state.yaw, state.pitch);
+			poseStack.mulPose(Axis.ZP.rotationDegrees(65.0F));
+			poseStack.translate(n * r * 0.28F, 0, -r * 0.5F);
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(SLASH), (pose, buf) -> {
+				crescent(buf, pose, r * 0.55F, r * 0.08F, 0.25F, Geo.alpha(color, fade), Geo.FULL_BRIGHT);
+				crescent(buf, pose, r * 0.53F, r * 0.03F, 0.25F, Geo.alpha(0xFFFFFFFF, fade), Geo.FULL_BRIGHT);
+			});
+			poseStack.popPose();
 		}
 	}
 
