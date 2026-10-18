@@ -428,8 +428,15 @@ def sanji(name, suit=0x15151C, shirt=0x3A5ACF, burn=None, glow=None, raid=False,
                     c = rgb(0xC8B050)
         else:
             c = SU
-        if glow and (u * 3 + v * 5) % 9 == 0:
-            c = rgb(glow)
+        if glow:
+            # Blue flame tongues licking up from the hem of the jacket.
+            tongue = 3 + (u * 37 + len(face) * 11) % 4
+            top = 11 - tongue
+            if v > top:
+                heat = (v - top) / float(tongue)
+                c = mix(c, rgb(glow), 0.35 + 0.55 * heat)
+                if v == 11 and u % 2 == 0:
+                    c = mix(c, rgb(0xDDF6FF), 0.6)
         return lit(c, face, u, v, w, h, rnd, 0.04)
     s.paint('body', body)
 
@@ -442,8 +449,9 @@ def sanji(name, suit=0x15151C, shirt=0x3A5ACF, burn=None, glow=None, raid=False,
             c = SU if not raid else rgb(0x101018)
             if raid and face in ('right', 'left') and u == 1:
                 c = rgb(0x2E56C9)
-        if glow and (u + v * 3) % 5 == 0 and v < 10:
-            c = rgb(glow)
+        if glow and v >= 8:
+            # The heat glows through the cuffs.
+            c = mix(c, rgb(glow), 0.25 + 0.12 * (v - 8))
         return lit(c, face, u, v, w, h, rnd, 0.04)
     s.paint('rarm', arm)
     s.paint('larm', arm)
@@ -462,8 +470,13 @@ def sanji(name, suit=0x15151C, shirt=0x3A5ACF, burn=None, glow=None, raid=False,
                 c = mix(c, rgb(burn), min(0.85, 0.3 + heat * 0.6))
             else:
                 c = mix(c, rgb(0xFFE070), heat * 0.8)
-        if glow and (u * 2 + v) % 4 == 0:
-            c = rgb(glow)
+        if glow:
+            # Both legs are wrapped in blue fire, hottest at the shoes and on the kicking leg.
+            heat = v / 11.0 * (1.0 if right else 0.8)
+            if (u + v) % 4 != 0:
+                c = mix(c, rgb(glow), min(0.9, 0.4 + heat * 0.5))
+            else:
+                c = mix(c, rgb(0xDDF6FF), 0.3 + heat * 0.6)
         return lit(c, face, u, v, w, h, rnd, 0.04)
     s.paint('rleg', lambda f, u, v, w, h: leg(f, u, v, w, h, True))
     s.paint('lleg', lambda f, u, v, w, h: leg(f, u, v, w, h, False))
