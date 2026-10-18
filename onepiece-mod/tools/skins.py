@@ -100,7 +100,10 @@ def hair_curly(face, u, v, w, h):
     return v <= 5 or front >= 3
 
 
-def head(skin, tone, hair_col, hair_fn, face_fn, rnd, extra=None):
+HAIR_DENSITY = {'hair_messy': 0.8, 'hair_buzz': 0.0, 'hair_sanji': 0.85, 'hair_long': 0.9, 'hair_spiky': 0.85, 'hair_curly': 0.9}
+
+
+def head(skin, tone, hair_col, hair_fn, face_fn, rnd, extra=None, volume=None):
     def fn(face, u, v, w, h):
         if extra:
             c = extra(face, u, v)
@@ -122,6 +125,19 @@ def head(skin, tone, hair_col, hair_fn, face_fn, rnd, extra=None):
                 return c
         return lit(tone, face, u, v, w, h, rnd, 0.02)
     skin.paint('head', fn)
+    # Outer layer: tufts of hair that stick out for a fuller, 3D hairstyle.
+    density = HAIR_DENSITY.get(hair_fn.__name__, 0.8) if volume is None else volume
+
+    def hat(face, u, v, w, h):
+        if density <= 0 or face == 'bottom' or not hair_fn(face, u, v, w, h):
+            return None
+        if face == 'front' and v > 1 and hair_fn.__name__ != 'hair_sanji':
+            return None
+        if rnd.random() > density:
+            return None
+        c = hair_col if (u + v) % 3 else shade(hair_col, 1.15)
+        return lit(c, face, u, v, w, h, rnd, 0.03)
+    skin.paint('head', hat, overlay=True)
 
 
 def limbs_skin(skin, part, tone, rnd, top_fn=None):
@@ -348,6 +364,17 @@ def zoro(name, coat=0x2C5A38, sash=0x7A2424, hair=0x3DAA4C, darken=1.0, eye=None
         return lit(C, face, u, v, w, h, rnd, 0.05)
     s.paint('rleg', coat_tail, overlay=True)
     s.paint('lleg', coat_tail, overlay=True)
+
+    def coat_body(face, u, v, w, h):
+        # The open coat sits a little off the body; the chest stays bare.
+        if face == 'front' and 2 <= u <= 5:
+            return None
+        if face in ('top', 'bottom') or v > 11:
+            return None
+        if 7 <= v <= 9 and face != 'back':
+            return None
+        return lit(shade(C, 1.05), face, u, v, w, h, rnd, 0.05)
+    s.paint('body', coat_body, overlay=True)
     s.save(os.path.join(OUT, name + '.png'))
 
 
@@ -440,6 +467,15 @@ def sanji(name, suit=0x15151C, shirt=0x3A5ACF, burn=None, glow=None, raid=False,
         return lit(c, face, u, v, w, h, rnd, 0.04)
     s.paint('rleg', lambda f, u, v, w, h: leg(f, u, v, w, h, True))
     s.paint('lleg', lambda f, u, v, w, h: leg(f, u, v, w, h, False))
+    if not raid:
+        def lapels(face, u, v, w, h):
+            # Jacket lapels and hem stand out from the shirt.
+            if face == 'front' and ((u in (1, 2) or u in (5, 6)) and v <= 6 and abs((u if u < 4 else 7 - u) - 2 + v * 0.3) < 1.2):
+                return lit(shade(SU, 1.25), face, u, v, w, h, rnd, 0.03)
+            if face in ('front', 'back', 'left', 'right') and v == 11:
+                return lit(shade(SU, 1.1), face, u, v, w, h, rnd, 0.03)
+            return None
+        s.paint('body', lapels, overlay=True)
     s.save(os.path.join(OUT, name + '.png'))
 
 
@@ -522,6 +558,16 @@ def kaido(name, scales=False, eye=None, seed=4):
         return lit(c, face, u, v, w, h, rnd, 0.05)
     s.paint('rleg', leg)
     s.paint('lleg', leg)
+
+    def coat(face, u, v, w, h):
+        if face in ('top', 'bottom') or v > 9:
+            return None
+        if face == 'front' and 2 <= u <= 5:
+            return None
+        if v in (8, 9) and face != 'back':
+            return None
+        return lit(shade(COAT, 1.08), face, u, v, w, h, rnd, 0.05)
+    s.paint('body', coat, overlay=True)
     s.save(os.path.join(OUT, name + '.png'))
 
 
