@@ -36,7 +36,7 @@ public final class AuraRenderer {
 		Vec3 right = new Vec3(-Mth.cos(yaw), 0, -Mth.sin(yaw));
 		switch (info.form()) {
 			case GEAR_2 -> {
-				steam(poseStack, collector, camera, t, h, w, Vec3.ZERO, 0xFFFFE8F0, 12, 0.55F);
+				steam(poseStack, collector, camera, t, h, w * 1.5F, Vec3.ZERO, 0xFFFFE8F0, 18, 0.6F);
 				glow(poseStack, collector, camera, new Vec3(0, h * 0.55, 0), h * 0.7F, 0x30FF6B8A);
 			}
 			case GEAR_4_BOUNDMAN, GEAR_4_TANKMAN -> {
@@ -50,6 +50,7 @@ public final class AuraRenderer {
 			}
 			case GEAR_5 -> {
 				cloudScarf(poseStack, collector, camera, t, h, w);
+				drumBeat(poseStack, collector, t, w);
 				glow(poseStack, collector, camera, new Vec3(0, h * 0.6, 0), h * (0.85F + Mth.sin(t * 0.1F) * 0.05F), 0x40FFF2C0);
 			}
 			case ASURA -> {
@@ -170,6 +171,25 @@ public final class AuraRenderer {
 				});
 			}
 		}
+	}
+
+	/** The Drums of Liberation: a soft ring pulses out from Gear 5 Luffy's feet with every beat. */
+	private static void drumBeat(PoseStack poseStack, SubmitNodeCollector collector, float t, float w) {
+		float beat = (t % 30.0F) / 30.0F;
+		float r = (0.4F + beat * 2.2F) * w;
+		int color = Geo.alpha(0xFFFFF6D8, (1.0F - beat) * 0.7F);
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(ModRenderTypes.tex("band")), (pose, buf) -> {
+			int steps = 40;
+			float inner = r * 0.82F;
+			for (int n = 0; n < steps; n++) {
+				float a0 = n / (float) steps * Mth.TWO_PI;
+				float a1 = (n + 1) / (float) steps * Mth.TWO_PI;
+				Geo.v(buf, pose, Mth.cos(a0) * inner, 0.05F, Mth.sin(a0) * inner, 0, 0, color, Geo.FULL_BRIGHT);
+				Geo.v(buf, pose, Mth.cos(a1) * inner, 0.05F, Mth.sin(a1) * inner, 0, 0, color, Geo.FULL_BRIGHT);
+				Geo.v(buf, pose, Mth.cos(a1) * r, 0.05F, Mth.sin(a1) * r, 1, 1, color, Geo.FULL_BRIGHT);
+				Geo.v(buf, pose, Mth.cos(a0) * r, 0.05F, Mth.sin(a0) * r, 1, 1, color, Geo.FULL_BRIGHT);
+			}
+		});
 	}
 
 	private static void feetClouds(PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera, float t, float w) {

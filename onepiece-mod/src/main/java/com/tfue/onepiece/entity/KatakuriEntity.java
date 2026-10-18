@@ -23,7 +23,7 @@ public class KatakuriEntity extends BossEntity {
 
 	public static AttributeSupplier.Builder createAttributes() {
 		return Monster.createMonsterAttributes()
-			.add(Attributes.MAX_HEALTH, 1300.0)
+			.add(Attributes.MAX_HEALTH, 1024.0)
 			.add(Attributes.ATTACK_DAMAGE, 18.0)
 			.add(Attributes.ARMOR, 12.0)
 			.add(Attributes.ARMOR_TOUGHNESS, 6.0)

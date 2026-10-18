@@ -20,6 +20,9 @@ public final class PowerHud {
 	private static final Identifier FRAME = GuiDraw.tex("hud_frame");
 	private static final Identifier BAR = GuiDraw.tex("stamina_bar");
 	private static final Identifier SLOT = GuiDraw.tex("slot_hover");
+	private static final Identifier SPEED_LINES = GuiDraw.tex("speed_lines");
+	private static final Identifier VIGNETTE = GuiDraw.tex("vignette");
+	private static final Identifier BANNER = GuiDraw.tex("title_banner");
 	private static float shownStamina = -1;
 
 	private PowerHud() {
@@ -31,6 +34,12 @@ public final class PowerHud {
 			return;
 		}
 		float partial = delta.getGameTimeDeltaPartialTick(true);
+		if (com.tfue.onepiece.client.CameraShake.impactFrame() > 0) {
+			int w = g.guiWidth();
+			int h = g.guiHeight();
+			g.fill(0, 0, w, h, 0x9A000000);
+			GuiDraw.image(g, SPEED_LINES, -w / 4, -h / 2, w * 3 / 2, h * 2, 512, 512, 0xE0FFFFFF);
+		}
 		if (Cutscene.active()) {
 			cutscene(g, mc, partial);
 			return;
@@ -97,6 +106,10 @@ public final class PowerHud {
 		g.pose().popMatrix();
 	}
 
+	private static int darker(int color) {
+		return (((color >> 16) & 0xFF) * 2 / 5 << 16) | (((color >> 8) & 0xFF) * 2 / 5 << 8) | ((color & 0xFF) * 2 / 5);
+	}
+
 	private static void haki(GuiGraphicsExtractor g, int x, int y, String type, boolean on, int color) {
 		GuiDraw.image(g, GuiDraw.tex("haki/" + type), x, y, 11, 11, 32, 32, on ? 0xFF000000 | color : 0xFF505050);
 	}
@@ -110,6 +123,17 @@ public final class PowerHud {
 		int w = g.guiWidth();
 		int h = g.guiHeight();
 		float bars = Math.min(1.0F, p * 6.0F) * Math.min(1.0F, (1.0F - p) * 6.0F);
+		GuiDraw.image(g, VIGNETTE, 0, 0, w, h, 256, 256, GuiDraw.alpha(0xFFFFFFFF, bars));
+		// Speed lines rushing in while the power builds up.
+		if (p < 0.45F) {
+			float pulse = 0.35F + 0.25F * (float) Math.sin(p * 60.0F);
+			int size = (int) (Math.max(w, h) * (1.9F - p));
+			g.pose().pushMatrix();
+			g.pose().translate(w / 2.0F, h / 2.0F);
+			g.pose().rotate(p * 0.6F);
+			GuiDraw.image(g, SPEED_LINES, -size / 2, -size / 2, size, size, 512, 512, GuiDraw.alpha(0xFF000000 | form.color, pulse * bars));
+			g.pose().popMatrix();
+		}
 		int bar = (int) (h * 0.13F * bars);
 		g.fill(0, 0, w, bar, 0xFF000000);
 		g.fill(0, h - bar, w, h, 0xFF000000);
@@ -128,6 +152,7 @@ public final class PowerHud {
 			Component sub = Component.translatable(form.fighter.translationKey()).withStyle(ChatFormatting.ITALIC);
 			int ty = h - bar - 46;
 			int slide = (int) ((1.0F - in) * 40);
+			GuiDraw.image(g, BANNER, w / 2 - 170 - slide, ty - 14, 340, 64, 512, 96, GuiDraw.alpha(0xFF000000 | darker(form.color), alpha * 0.9F));
 			g.pose().pushMatrix();
 			g.pose().translate(w / 2.0F - slide, ty);
 			g.pose().scale(2.6F, 2.6F);

@@ -464,8 +464,14 @@ public final class Moves {
 		});
 	}
 
+	/** Cracked ground decal that lingers after a big hit. */
+	static void crater(ServerLevel level, Vec3 spot, double radius) {
+		VfxEntity.create(level, VfxType.CRATER, spot.add(0, 0.03, 0), 0xFFFFFFFF, (float) radius, 120).spawn();
+	}
+
 	static void groundBurst(LivingEntity p, Vec3 spot, double radius, float damage, float upward, int color) {
 		ServerLevel level = lvl(p);
+		crater(level, spot, radius * 0.8);
 		shock(level, spot.add(0, 0.1, 0), color, (float) radius, 16);
 		shock(level, spot.add(0, 0.1, 0), WHITE, (float) radius * 0.6F, 10);
 		VfxEntity.create(level, VfxType.CLOUD, spot, 0xFFD8D0C0, (float) radius * 0.5F, 20).spawn();
@@ -655,6 +661,7 @@ public final class Moves {
 			if (tick > 4 && (p.onGround() || tick == 59)) {
 				ServerLevel level = lvl(p);
 				shock(level, p.position().add(0, 0.1, 0), color, (float) radius * 1.3F, 14);
+				crater(level, p.position(), radius * 0.7);
 				if (fire) {
 					VfxEntity.create(level, VfxType.FIRE_BURST, p.position().add(0, 0.5, 0), color, (float) radius * 0.7F, 18).spawn();
 					sound(p, ModSounds.FIRE_BLAST, 1.4F, color == BLUE_FIRE ? 0.7F : 1.0F);
@@ -878,6 +885,7 @@ public final class Moves {
 					VfxEntity.create(level, VfxType.LIGHTNING, strike.add(0, 18, 0), 0xFFC9B3FF, 1.2F, 12).target(strike).spawn();
 				}
 				VfxEntity.create(level, VfxType.CLOUD, at, 0xFFB8A890, (float) radius * 0.5F, 20).spawn();
+				crater(level, at, radius);
 				Combat.hitSphere(p, at, radius, damage, 4.0F, 1.0F, false);
 				soundAt(level, at, ModSounds.LIGHTNING, 2.0F, 0.7F);
 				soundAt(level, at, ModSounds.HEAVY_IMPACT, 2.0F, 0.5F);

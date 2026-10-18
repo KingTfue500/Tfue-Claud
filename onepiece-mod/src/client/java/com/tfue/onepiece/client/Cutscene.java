@@ -86,9 +86,14 @@ public final class Cutscene {
 		Vec3 center = entity.getPosition(partialTicks).add(0, h * 0.6, 0);
 		float ease = p * p * (3 - 2 * p);
 		float angle = startAngle + ease * Mth.PI * 1.15F;
-		float radius = Math.max(3.2F, h * 1.6F) * (1.25F - 0.35F * Mth.sin(p * Mth.PI));
-		float height = h * (0.1F + 0.35F * (1 - p));
-		Vec3 eye = center.add(Mth.cos(angle) * radius, height, Mth.sin(angle) * radius);
-		return new Vec3[] {eye, center};
+		// Start tight on the face, pull out for the reveal, then circle around.
+		float base = Math.max(3.2F, h * 1.6F);
+		float pull = p < 0.4F ? 0.45F + 0.55F * (p / 0.4F) * (p / 0.4F) : 1.0F + 0.15F * Mth.sin((p - 0.4F) / 0.6F * Mth.PI);
+		float radius = base * pull;
+		Vec3 face = entity.getPosition(partialTicks).add(0, h * 0.85, 0);
+		Vec3 focus = p < 0.4F ? face.lerp(center, p / 0.4F) : center;
+		float height = h * (0.05F + 0.3F * Math.max(0.0F, p - 0.3F));
+		Vec3 eye = focus.add(Mth.cos(angle) * radius, height, Mth.sin(angle) * radius);
+		return new Vec3[] {eye, focus};
 	}
 }

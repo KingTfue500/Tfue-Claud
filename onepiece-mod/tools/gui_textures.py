@@ -508,3 +508,67 @@ def make_haki():
 if __name__ == '__main__':
     wheel_ring(); wheel_center(); slots(); hud_frame(); stamina_bar(); make_icons(); make_forms(); make_emblems(); make_haki()
     print('gui done')
+
+
+def speed_lines():
+    """Radial anime speed lines with a clear centre, stretched over the whole screen."""
+    import random
+    S = 512
+    k = 2
+    img = Image.new('RGBA', (S * k, S * k))
+    d = ImageDraw.Draw(img)
+    c = S * k / 2
+    r = random.Random(3)
+    for i in range(160):
+        a = r.random() * math.tau
+        w = (0.004 + r.random() * 0.012)
+        inner = (0.32 + r.random() * 0.25) * c
+        outer = c * 1.5
+        p0 = (c + math.cos(a - w) * outer, c + math.sin(a - w) * outer)
+        p1 = (c + math.cos(a + w) * outer, c + math.sin(a + w) * outer)
+        p2 = (c + math.cos(a) * inner, c + math.sin(a) * inner)
+        d.polygon([p0, p1, p2], fill=(255, 255, 255, 255))
+    img.resize((S, S), Image.LANCZOS).save(os.path.join(BASE, 'speed_lines.png'))
+
+
+def vignette():
+    S = 256
+    img = Image.new('RGBA', (S, S))
+    c = (S - 1) / 2
+    for y in range(S):
+        for x in range(S):
+            d = math.hypot((x - c) / c, (y - c) / c)
+            a = max(0.0, min(1.0, (d - 0.55) / 0.6)) ** 1.6
+            img.putpixel((x, y), (0, 0, 0, int(a * 255)))
+    img.save(os.path.join(BASE, 'vignette.png'))
+
+
+def title_banner():
+    """Brush-stroke banner behind cutscene titles."""
+    import random
+    W, H = 512, 96
+    k = 2
+    img = Image.new('RGBA', (W * k, H * k))
+    d = ImageDraw.Draw(img)
+    r = random.Random(9)
+    for i in range(70):
+        y = H * k / 2 + (r.random() - 0.5) * H * k * 0.55
+        x0 = r.random() * 60 * k
+        x1 = W * k - r.random() * 60 * k
+        th = (4 + r.random() * 10) * k
+        d.line((x0, y, x1, y + (r.random() - 0.5) * 10 * k), fill=(255, 255, 255, int(120 + r.random() * 120)), width=int(th))
+    img = img.filter(ImageFilter.GaussianBlur(1.5 * k))
+    # ragged ends
+    alpha = img.getchannel('A')
+    for x in range(W * k):
+        edge = min(x, W * k - 1 - x) / (90 * k)
+        if edge < 1:
+            col = alpha.crop((x, 0, x + 1, H * k)).point(lambda v, e=edge: int(v * e))
+            alpha.paste(col, (x, 0))
+    img.putalpha(alpha)
+    img.resize((W, H), Image.LANCZOS).save(os.path.join(BASE, 'title_banner.png'))
+
+
+if __name__ == '__main__':
+    speed_lines(); vignette(); title_banner()
+    print('overlays done')

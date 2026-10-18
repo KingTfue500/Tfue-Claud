@@ -32,7 +32,9 @@ public enum VfxType {
 	/** Katakuri's mochi trident thrust. */
 	SPEAR,
 	/** Claw marks (Lucci). */
-	CLAW;
+	CLAW,
+	/** Cracked ground left behind by huge slams. */
+	CRATER;
 
 	public static VfxType byId(int id) {
 		VfxType[] values = values();

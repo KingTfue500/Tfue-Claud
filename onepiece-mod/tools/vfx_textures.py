@@ -326,3 +326,37 @@ def haki_overlay():
 if __name__ == '__main__':
     glow(); beam(); white(); slash(); band(); fire(); cloud(); impact(); wind(); limbs(); straw(); props(); haki_overlay()
     print('vfx done')
+
+
+def cracks():
+    """Ground crack decal: dark branching fissures radiating from the centre."""
+    import random
+    S = 128
+    k = 2
+    img = Image.new('RGBA', (S * k, S * k))
+    d = ImageDraw.Draw(img)
+    r = random.Random(21)
+    c = S * k / 2
+
+    def branch(x, y, ang, length, width, depth):
+        if depth > 4 or length < 4:
+            return
+        steps = int(length / 6)
+        for i in range(steps):
+            ang += (r.random() - 0.5) * 0.6
+            nx, ny = x + math.cos(ang) * 6, y + math.sin(ang) * 6
+            d.line((x, y, nx, ny), fill=(20, 14, 10, 230), width=max(1, int(width)))
+            x, y = nx, ny
+            width *= 0.97
+            if r.random() < 0.08:
+                branch(x, y, ang + (r.random() - 0.5) * 1.6, length * 0.5, width * 0.7, depth + 1)
+    for i in range(9):
+        a = i / 9 * math.tau + r.random() * 0.4
+        branch(c, c, a, c * (0.6 + r.random() * 0.35), 7 * k / 2, 0)
+    d.ellipse((c - 14 * k, c - 14 * k, c + 14 * k, c + 14 * k), fill=(24, 16, 12, 200))
+    img = img.filter(ImageFilter.GaussianBlur(0.6 * k))
+    img.resize((S, S), Image.LANCZOS).save(os.path.join(VFX, 'cracks.png'))
+
+
+if __name__ == '__main__':
+    cracks()

@@ -12,7 +12,17 @@ public final class CameraShake {
 	private CameraShake() {
 	}
 
+	private static int impactFrame;
+
+	/** Anime "impact frame": a couple of dark, high-contrast frames on the biggest hits. */
+	public static float impactFrame() {
+		return impactFrame;
+	}
+
 	public static void start(float power, int ticks) {
+		if (power >= 1.0F) {
+			impactFrame = 3;
+		}
 		if (power >= strength * (ticksLeft / (float) length)) {
 			strength = Math.min(2.5F, power);
 			ticksLeft = ticks;
@@ -21,6 +31,9 @@ public final class CameraShake {
 	}
 
 	public static void tick() {
+		if (impactFrame > 0) {
+			impactFrame--;
+		}
 		if (ticksLeft > 0) {
 			ticksLeft--;
 		}

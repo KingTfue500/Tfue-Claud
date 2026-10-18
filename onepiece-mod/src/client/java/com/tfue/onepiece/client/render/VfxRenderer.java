@@ -31,6 +31,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 	private static final Identifier WIND = ModRenderTypes.tex("wind");
 	private static final Identifier WHITE = ModRenderTypes.tex("white");
 	private static final Identifier BEAM = ModRenderTypes.tex("beam");
+	private static final Identifier CRACKS = ModRenderTypes.tex("cracks");
 	private static final String[] LOOKS = {"skin", "haki", "gear5", "gear2", "gear4", "mochi"};
 
 	public VfxRenderer(EntityRendererProvider.Context context) {
@@ -122,6 +123,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			case SLASH_RING -> slashRing(state, poseStack, collector, q);
 			case SPEAR -> spear(state, poseStack, collector, q, camRel);
 			case CLAW -> claw(state, poseStack, collector, q);
+			case CRATER -> crater(state, poseStack, collector, q);
 		}
 	}
 
@@ -251,6 +253,22 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(BEAM), (pose, buf) ->
 				Geo.beam(buf, pose, start, end, camRel, w * 6.0F, Geo.alpha(streak, 0.0F), streak, Geo.FULL_BRIGHT));
 		}
+	}
+
+	private void crater(State state, PoseStack poseStack, SubmitNodeCollector collector, float q) {
+		float fade = q < 0.7F ? Math.min(1.0F, q * 20.0F) : (1.0F - q) / 0.3F;
+		float r = state.size;
+		poseStack.pushPose();
+		poseStack.mulPose(Axis.YP.rotationDegrees(state.seed * 47 % 360));
+		int color = Geo.alpha(0xFFFFFFFF, fade * 0.9F);
+		int light = state.lightCoords;
+		collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(CRACKS), (pose, buf) -> {
+			Geo.v(buf, pose, -r, 0, -r, 0, 0, color, light);
+			Geo.v(buf, pose, -r, 0, r, 0, 1, color, light);
+			Geo.v(buf, pose, r, 0, r, 1, 1, color, light);
+			Geo.v(buf, pose, r, 0, -r, 1, 0, color, light);
+		});
+		poseStack.popPose();
 	}
 
 	/** Three raking claw marks (Lucci). */
