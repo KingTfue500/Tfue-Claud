@@ -256,6 +256,10 @@ public final class Powers {
 		}
 		set(player, next);
 		move.action().run(player);
+		if (Moves.ULTIMATES.contains(move.id()) && ServerPlayNetworking.canSend(player, com.tfue.onepiece.network.CutscenePayload.TYPE)) {
+			// Negative form ids mean "skill cutscene" for skill number -id - 1.
+			ServerPlayNetworking.send(player, new com.tfue.onepiece.network.CutscenePayload(player.getId(), -1 - Moves.indexOf(move)));
+		}
 		player.sendOverlayMessage(Component.translatable(move.translationKey()).withColor(data.form().color & 0xFFFFFF).withStyle(ChatFormatting.BOLD, ChatFormatting.ITALIC));
 	}
 
@@ -385,6 +389,9 @@ public final class Powers {
 	// ------------------------------------------------------------------ network
 
 	public static void handle(ServerPlayer player, ActionPayload payload) {
+		if (!player.isAlive() || player.isSpectator()) {
+			return;
+		}
 		switch (payload.action()) {
 			case ActionPayload.USE_MOVE -> useSelected(player);
 			case ActionPayload.SELECT_MOVE -> selectMove(player, payload.value());
@@ -470,11 +477,14 @@ public final class Powers {
 	/** Kaido's dragon form flies on flame clouds. */
 	private static void updateFlight(ServerPlayer player, boolean dragon) {
 		boolean granted = DRAGON_FLIGHT.contains(player.getUUID());
-		if (dragon && !granted) {
+		if (dragon) {
 			DRAGON_FLIGHT.add(player.getUUID());
-			player.getAbilities().mayfly = true;
-			player.onUpdateAbilities();
-		} else if (!dragon && granted) {
+			// Re-grant every tick check: switching game modes resets the ability.
+			if (!player.getAbilities().mayfly && !player.isSpectator()) {
+				player.getAbilities().mayfly = true;
+				player.onUpdateAbilities();
+			}
+		} else if (granted) {
 			DRAGON_FLIGHT.remove(player.getUUID());
 			if (!player.isCreative() && !player.isSpectator()) {
 				player.getAbilities().mayfly = false;

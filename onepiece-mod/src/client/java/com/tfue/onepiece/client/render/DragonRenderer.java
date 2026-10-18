@@ -47,7 +47,8 @@ public final class DragonRenderer {
 			for (int n = 1; n < SEGMENTS; n++) {
 				float f = n / (float) SEGMENTS;
 				float w = h * 0.2F * (1.0F - f * 0.75F);
-				Geo.tube(buf, pose, spine[n], spine[n + 1], w, w * 1.2F, 0xFFFFFFFF, light);
+				float wNext = h * 0.2F * (1.0F - (n + 1) / (float) SEGMENTS * 0.75F);
+				Geo.roundTube(buf, pose, spine[n], spine[n + 1], w * 0.55F, wNext * 0.55F, 10, w * 1.2F, 0xFFFFFFFF, light);
 			}
 		});
 		// Lighter belly plates under the front half.
@@ -56,7 +57,7 @@ public final class DragonRenderer {
 				float f = n / (float) SEGMENTS;
 				float w = h * 0.2F * (1.0F - f * 0.75F);
 				Vec3 down = new Vec3(0, -w * 0.32, 0);
-				Geo.tube(buf, pose, spine[n].add(down), spine[n + 1].add(down), w * 0.75F, w, 0xFFFFFFFF, light);
+				Geo.roundTube(buf, pose, spine[n].add(down), spine[n + 1].add(down), w * 0.42F, w * 0.4F, 8, w, 0xFFFFFFFF, light);
 			}
 		});
 		// Mane spikes along the back.
@@ -139,8 +140,8 @@ public final class DragonRenderer {
 				Vec3 a = new Vec3(side * s * 0.7, s * 0.8, s * 0.2);
 				Vec3 b = a.add(side * s * 0.5, s * 1.1, -s * 1.4);
 				Vec3 c = b.add(side * s * 0.3, s * 0.5, -s * 1.8);
-				Geo.tube(buf, pose, a, b, s * 0.32F, s * 0.6F, 0xFFFFFFFF, light);
-				Geo.tube(buf, pose, b, c, s * 0.2F, s * 0.6F, 0xFFF0E8D8, light);
+				Geo.roundTube(buf, pose, a, b, s * 0.18F, s * 0.13F, 6, s * 0.6F, 0xFFFFFFFF, light);
+				Geo.roundTube(buf, pose, b, c, s * 0.13F, s * 0.03F, 6, s * 0.6F, 0xFFF0E8D8, light);
 			}
 		});
 		// Whiskers drifting in the wind.

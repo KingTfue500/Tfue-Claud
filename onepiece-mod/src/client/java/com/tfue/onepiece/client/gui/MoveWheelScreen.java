@@ -83,7 +83,11 @@ public class MoveWheelScreen extends Screen {
 	public void tick() {
 		super.tick();
 		InputConstants.Key bound = KeyMappingHelper.getBoundKeyOf(this.key);
-		boolean held = bound.getType() == InputConstants.Type.KEYSYM && InputConstants.isKeyDown(this.minecraft.getWindow(), bound.getValue());
+		boolean held = switch (bound.getType()) {
+			case KEYSYM -> InputConstants.isKeyDown(this.minecraft.getWindow(), bound.getValue());
+			case MOUSE -> org.lwjgl.glfw.GLFW.glfwGetMouseButton(this.minecraft.getWindow().handle(), bound.getValue()) == org.lwjgl.glfw.GLFW.GLFW_PRESS;
+			default -> false;
+		};
 		if (!held) {
 			this.choose(false);
 		}

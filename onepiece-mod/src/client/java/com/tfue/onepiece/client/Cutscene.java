@@ -14,8 +14,13 @@ import org.jspecify.annotations.Nullable;
 public final class Cutscene {
 	public static final int LENGTH = 64;
 
+	public static final int SKILL_LENGTH = 36;
+
 	private static int entityId = -1;
 	private static @Nullable Form form;
+	private static com.tfue.onepiece.power.@Nullable Move skill;
+	private static int length = LENGTH;
+	private static long lastSkill = -1000;
 	private static long start;
 	private static float startAngle;
 
@@ -33,6 +38,8 @@ public final class Cutscene {
 		}
 		entityId = id;
 		form = newForm;
+		skill = null;
+		length = LENGTH;
 		start = mc.level.getGameTime();
 		Vec3 toCamera = mc.player.position().subtract(entity.position());
 		startAngle = (float) Math.atan2(toCamera.z, toCamera.x);
@@ -41,9 +48,33 @@ public final class Cutscene {
 		}
 	}
 
+	/** Short cinematic for a finishing skill: low dramatic angle beside the fighter and the skill's name. */
+	public static void playSkill(int id, com.tfue.onepiece.power.Move move) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.level == null || mc.level.getEntity(id) == null) {
+			return;
+		}
+		if (active() || mc.level.getGameTime() - lastSkill < 100) {
+			return;
+		}
+		lastSkill = mc.level.getGameTime();
+		Entity entity = mc.level.getEntity(id);
+		entityId = id;
+		form = move.form();
+		skill = move;
+		length = SKILL_LENGTH;
+		start = mc.level.getGameTime();
+		startAngle = (entity.getYRot() + 90.0F + 35.0F) * Mth.DEG_TO_RAD;
+	}
+
+	public static com.tfue.onepiece.power.@Nullable Move skill() {
+		return skill;
+	}
+
 	public static void stop() {
 		entityId = -1;
 		form = null;
+		skill = null;
 	}
 
 	/** 0..1 through the cutscene, or -1 when none is playing. */
@@ -52,7 +83,7 @@ public final class Cutscene {
 		if (form == null || mc.level == null) {
 			return -1.0F;
 		}
-		float p = (mc.level.getGameTime() - start + partialTicks) / LENGTH;
+		float p = (mc.level.getGameTime() - start + partialTicks) / length;
 		if (p < 0.0F || p > 1.0F || mc.level.getEntity(entityId) == null) {
 			if (p > 1.0F || mc.level.getEntity(entityId) == null) {
 				stop();
@@ -84,14 +115,24 @@ public final class Cutscene {
 		}
 		float h = entity.getBbHeight();
 		Vec3 center = entity.getPosition(partialTicks).add(0, h * 0.6, 0);
+		if (skill != null) {
+			// Low angle from the front-side, slowly sliding past, looking slightly ahead of the fighter.
+			float yaw = entity.getYRot() * Mth.DEG_TO_RAD;
+			Vec3 forward = new Vec3(-Mth.sin(yaw), 0, Mth.cos(yaw));
+			float side = startAngle + p * 0.5F;
+			float radius = Math.max(3.0F, h * 1.7F);
+			Vec3 eye = center.add(forward.scale(radius * 0.6)).add(Mth.cos(side) * radius, -h * 0.35, Mth.sin(side) * radius);
+			return new Vec3[] {eye, center.add(forward.scale(h * 1.2))};
+		}
 		float ease = p * p * (3 - 2 * p);
 		float angle = startAngle + ease * Mth.PI * 1.15F;
 		// Start tight on the face, pull out for the reveal, then circle around.
 		float base = Math.max(3.2F, h * 1.6F);
-		float pull = p < 0.4F ? 0.45F + 0.55F * (p / 0.4F) * (p / 0.4F) : 1.0F + 0.15F * Mth.sin((p - 0.4F) / 0.6F * Mth.PI);
+		boolean dragon = form == Form.KAIDO_DRAGON;
+		float pull = dragon ? 1.0F + 0.15F * Mth.sin(p * Mth.PI) : p < 0.4F ? 0.45F + 0.55F * (p / 0.4F) * (p / 0.4F) : 1.0F + 0.15F * Mth.sin((p - 0.4F) / 0.6F * Mth.PI);
 		float radius = base * pull;
 		Vec3 face = entity.getPosition(partialTicks).add(0, h * 0.85, 0);
-		Vec3 focus = p < 0.4F ? face.lerp(center, p / 0.4F) : center;
+		Vec3 focus = p < 0.4F && !dragon ? face.lerp(center, p / 0.4F) : center;
 		float height = h * (0.05F + 0.3F * Math.max(0.0F, p - 0.3F));
 		Vec3 eye = focus.add(Mth.cos(angle) * radius, height, Mth.sin(angle) * radius);
 		return new Vec3[] {eye, focus};

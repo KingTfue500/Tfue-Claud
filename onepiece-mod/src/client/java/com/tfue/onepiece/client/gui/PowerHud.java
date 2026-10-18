@@ -106,6 +106,23 @@ public final class PowerHud {
 		g.pose().popMatrix();
 	}
 
+	/** Skill name slammed onto the screen during a finishing-move cinematic. */
+	private static void skillCard(GuiGraphicsExtractor g, Minecraft mc, float p, Form form, int w, int h, int bar) {
+		com.tfue.onepiece.power.Move move = Cutscene.skill();
+		float in = Math.min(1.0F, p * 8.0F);
+		float out = Math.min(1.0F, (1.0F - p) * 6.0F);
+		float alpha = in * out;
+		float punch = 1.0F + 0.6F * (1.0F - in);
+		int color = 0xFF000000 | form.color;
+		int ty = bar + 24;
+		GuiDraw.image(g, BANNER, w / 2 - 190, ty - 16, 380, 64, 512, 96, GuiDraw.alpha(0xFF000000 | darker(form.color), alpha * 0.85F));
+		g.pose().pushMatrix();
+		g.pose().translate(w / 2.0F, ty);
+		g.pose().scale(2.2F * punch, 2.2F * punch);
+		g.centeredText(mc.font, Component.translatable(move.translationKey()).withStyle(ChatFormatting.BOLD, ChatFormatting.ITALIC), 0, 0, GuiDraw.alpha(color, alpha));
+		g.pose().popMatrix();
+	}
+
 	private static int darker(int color) {
 		return (((color >> 16) & 0xFF) * 2 / 5 << 16) | (((color >> 8) & 0xFF) * 2 / 5 << 8) | ((color & 0xFF) * 2 / 5);
 	}
@@ -137,6 +154,10 @@ public final class PowerHud {
 		int bar = (int) (h * 0.13F * bars);
 		g.fill(0, 0, w, bar, 0xFF000000);
 		g.fill(0, h - bar, w, h, 0xFF000000);
+		if (Cutscene.skill() != null) {
+			skillCard(g, mc, p, form, w, h, bar);
+			return;
+		}
 		// White flash on the reveal.
 		float flash = Math.max(0.0F, 1.0F - Math.abs(p - 0.42F) * 9.0F);
 		if (flash > 0) {

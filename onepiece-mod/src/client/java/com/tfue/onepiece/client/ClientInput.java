@@ -42,6 +42,14 @@ public final class ClientInput {
 	public static void init() {
 	}
 
+	private static boolean drain(KeyMapping key) {
+		boolean any = false;
+		while (key.consumeClick()) {
+			any = true;
+		}
+		return any;
+	}
+
 	public static void send(int action, int value) {
 		if (ClientPlayNetworking.canSend(ActionPayload.TYPE)) {
 			ClientPlayNetworking.send(new ActionPayload(action, value));
@@ -58,34 +66,31 @@ public final class ClientInput {
 			formHeld = 0;
 			return;
 		}
-		// Skill key: tap to use, hold for the wheel.
+		// Skill key: tap to use, hold for the wheel. A press shorter than a tick still counts as a tap.
+		boolean skillClicked = drain(SKILL);
 		if (SKILL.isDown()) {
 			skillHeld++;
 			if (skillHeld == HOLD_TICKS && data.active()) {
 				mc.gui.setScreen(new MoveWheelScreen(false, SKILL));
 			}
 		} else {
-			if (skillHeld > 0 && skillHeld < HOLD_TICKS) {
+			if (skillHeld > 0 && skillHeld < HOLD_TICKS || skillHeld == 0 && skillClicked) {
 				send(ActionPayload.USE_MOVE, 0);
 			}
 			skillHeld = 0;
 		}
-		while (SKILL.consumeClick()) {
-			// clicks are handled through isDown above
-		}
+		boolean formClicked = drain(FORM);
 		if (FORM.isDown()) {
 			formHeld++;
 			if (formHeld == HOLD_TICKS && data.active()) {
 				mc.gui.setScreen(new MoveWheelScreen(true, FORM));
 			}
 		} else {
-			if (formHeld > 0 && formHeld < HOLD_TICKS && data.active() && !data.form().isBase()) {
+			boolean tapped = formHeld > 0 && formHeld < HOLD_TICKS || formHeld == 0 && formClicked;
+			if (tapped && data.active() && !data.form().isBase()) {
 				send(ActionPayload.SELECT_FORM, Form.base(data.fighter()).ordinal());
 			}
 			formHeld = 0;
-		}
-		while (FORM.consumeClick()) {
-			// handled above
 		}
 		while (FIGHTER.consumeClick()) {
 			send(ActionPayload.CYCLE_FIGHTER, 0);

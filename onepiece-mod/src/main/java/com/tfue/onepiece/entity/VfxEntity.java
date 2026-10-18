@@ -46,8 +46,10 @@ public class VfxEntity extends Entity {
 	private boolean fire;
 	private boolean pierce;
 	private boolean homing;
+	private boolean phase;
 	private float hitRadius;
-	private int impactEffect = -1;
+	private boolean impact;
+	private int impactColor;
 	private final Set<Integer> alreadyHit = new HashSet<>();
 
 	public VfxEntity(EntityType<? extends VfxEntity> type, Level level) {
@@ -118,6 +120,12 @@ public class VfxEntity extends Entity {
 		return this;
 	}
 
+	/** Passes through blocks (rising mochi pillars, the Bajrang fist falling through trees). */
+	public VfxEntity phase() {
+		this.phase = true;
+		return this;
+	}
+
 	public VfxEntity homing() {
 		this.homing = true;
 		return this;
@@ -125,7 +133,8 @@ public class VfxEntity extends Entity {
 
 	/** Spawn a shockwave of this color when the projectile hits something. */
 	public VfxEntity impact(int color) {
-		this.impactEffect = color;
+		this.impact = true;
+		this.impactColor = color;
 		return this;
 	}
 
@@ -213,7 +222,7 @@ public class VfxEntity extends Entity {
 			}
 		}
 
-		if (motion.lengthSqr() > 1.0E-6 && this.getVfxType() != VfxType.TORNADO) {
+		if (motion.lengthSqr() > 1.0E-6 && this.getVfxType() != VfxType.TORNADO && !this.phase) {
 			BlockHitResult hit = level.clip(new ClipContext(this.position(), this.position().add(motion), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
 			if (hit.getType() == HitResult.Type.BLOCK) {
 				this.explodeHere(level, owner);
@@ -222,7 +231,11 @@ public class VfxEntity extends Entity {
 		}
 
 		AABB box = new AABB(this.position(), this.position()).inflate(this.hitRadius).expandTowards(motion);
+		LivingEntity attacker = owner instanceof LivingEntity l ? l : null;
 		for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box, e -> e.isAlive() && e != owner)) {
+			if (target instanceof net.minecraft.world.entity.player.Player p && (p.isCreative() || p.isSpectator()) || !Combat.canHit(attacker, target, level)) {
+				continue;
+			}
 			if (!this.alreadyHit.add(target.getId())) {
 				if (this.getVfxType() == VfxType.TORNADO && this.tickCount % 6 == 0) {
 					this.alreadyHit.remove(target.getId());
@@ -234,7 +247,7 @@ public class VfxEntity extends Entity {
 				target.setDeltaMovement(target.getDeltaMovement().add(0, 0.55, 0));
 				target.hurtMarked = true;
 			}
-			Combat.hit(owner instanceof LivingEntity l ? l : null, target, this.damage, push, this.knockback, this.upward, this.fire);
+			Combat.hit(attacker, target, this.damage, push, this.knockback, this.upward, this.fire);
 			if (!this.pierce) {
 				this.explodeHere(level, owner);
 				return;
@@ -243,9 +256,9 @@ public class VfxEntity extends Entity {
 	}
 
 	private void explodeHere(ServerLevel level, @Nullable Entity owner) {
-		if (this.impactEffect != -1) {
-			VfxEntity.create(level, VfxType.SHOCKWAVE, this.position(), this.impactEffect, this.getSize() * 1.6F, 14).spawn();
-			VfxEntity.create(level, VfxType.IMPACT, this.position(), this.impactEffect, this.getSize(), 8).spawn();
+		if (this.impact) {
+			VfxEntity.create(level, VfxType.SHOCKWAVE, this.position(), this.impactColor, this.getSize() * 1.6F, 14).spawn();
+			VfxEntity.create(level, VfxType.IMPACT, this.position(), this.impactColor, this.getSize(), 8).spawn();
 			Combat.hitSphere(owner instanceof LivingEntity l ? l : null, this.position(), this.getSize() * 1.2, this.damage * 0.6F, this.knockback, 0.4F, this.fire);
 		}
 		this.discard();

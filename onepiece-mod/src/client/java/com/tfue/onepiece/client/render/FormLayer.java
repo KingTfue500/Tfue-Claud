@@ -287,9 +287,9 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 				Vec3 b = a.add(side * 2.0F * PX * size, -4.5F * PX * size, 0.6F * PX * size);
 				Vec3 c = b.add(side * 0.8F * PX * size, -4.6F * PX * size, 2.0F * PX * size);
 				Vec3 d = c.add(side * -0.4F * PX * size, -3.0F * PX * size, 2.6F * PX * size);
-				Geo.tube(buf, pose, a, b, 2.0F * PX * size, 0.2F, 0xFFFFFFFF, light);
-				Geo.tube(buf, pose, b, c, 1.6F * PX * size, 0.2F, 0xFFFFFFFF, light);
-				Geo.tube(buf, pose, c, d, 1.0F * PX * size, 0.2F, 0xFFE8E0D0, light);
+				Geo.roundTube(buf, pose, a, b, 1.1F * PX * size, 0.9F * PX * size, 6, 0.2F, 0xFFFFFFFF, light);
+				Geo.roundTube(buf, pose, b, c, 0.9F * PX * size, 0.6F * PX * size, 6, 0.2F, 0xFFFFFFFF, light);
+				Geo.roundTube(buf, pose, c, d, 0.6F * PX * size, 0.1F * PX * size, 6, 0.2F, 0xFFE8E0D0, light);
 			}
 		});
 	}
@@ -380,7 +380,7 @@ public class FormLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 				float f = n / 7.0F;
 				float sway = Mth.sin(t * 0.18F - n * 0.6F) * 0.12F * f;
 				Vec3 next = new Vec3(sway, (10.5F + n * 1.6F) * PX - f * f * 0.35F, (2.0F + n * 2.6F) * PX);
-				Geo.tube(buf, pose, prev, next, (2.2F - f * 1.0F) * PX * size, 0.15F, 0xFFFFFFFF, light);
+				Geo.roundTube(buf, pose, prev, next, (1.2F - f * 0.5F) * PX * size, (1.2F - (f + 1.0F / 7.0F) * 0.5F) * PX * size, 6, 0.15F, 0xFFFFFFFF, light);
 				prev = next;
 			}
 		});

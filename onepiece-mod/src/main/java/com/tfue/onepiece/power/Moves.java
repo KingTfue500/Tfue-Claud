@@ -32,6 +32,14 @@ public final class Moves {
 	public static final List<Move> ALL = new ArrayList<>();
 	private static final Map<String, Move> BY_ID = new HashMap<>();
 	private static final Map<Form, List<Move>> BY_FORM = new EnumMap<>(Form.class);
+	/** Finishing moves that play a short cinematic for the player who uses them. */
+	public static final java.util.Set<String> ULTIMATES = java.util.Set.of(
+		"gum_gum_storm", "red_hawk", "elephant_gatling", "kong_organ", "black_mamba", "cannonball", "bajrang_gun", "toon_ground",
+		"rengoku_onigiri", "asura_ichibugin", "sanzen_sekai", "king_of_hell_purgatory",
+		"party_table", "hell_memories", "ifrit_jambe", "ifrit_nova", "poele_spectre",
+		"ragnaraku", "lightning_rain", "thunder_storm", "dragon_twister",
+		"donut_barrage", "hakai_mochi", "mochi_pillars",
+		"rokuogan", "leopard_storm", "awakened_rokuogan");
 
 	// Arm/leg looks for stretch effects. Read by the client renderer.
 	public static final int LOOK_SKIN = 0;
@@ -234,7 +242,24 @@ public final class Moves {
 		return BY_ID.get(id);
 	}
 
+	public static int indexOf(Move move) {
+		return ALL.indexOf(move);
+	}
+
 	// ------------------------------------------------------------------ helpers
+
+	/** Teleports only into open space (also tries one block up); returns whether it moved. */
+	static boolean safeTeleport(LivingEntity p, Vec3 pos) {
+		for (double up = 0; up <= 1.0; up += 1.0) {
+			Vec3 at = pos.add(0, up, 0);
+			if (lvl(p).noCollision(p, p.getBoundingBox().move(at.subtract(p.position())))) {
+				p.teleportTo(at.x, at.y, at.z);
+				p.fallDistance = 0;
+				return true;
+			}
+		}
+		return false;
+	}
 
 	static ServerLevel lvl(LivingEntity e) {
 		return (ServerLevel) e.level();
@@ -348,9 +373,12 @@ public final class Moves {
 			double dist = Math.min(1.0, target.distanceTo(p.position()) / range);
 			Combat.launch(p, dir.scale(power * (0.8 + dist)).add(0, 0.5, 0));
 			sound(p, ModSounds.SNAP, 1.0F, 1.0F);
+			java.util.Set<Integer> hit = new java.util.HashSet<>();
 			Scheduler.repeat(p, 30, tick -> {
 				for (LivingEntity e : lvl(p).getEntitiesOfClass(LivingEntity.class, p.getBoundingBox().inflate(1.0), e -> e != p && e.isAlive())) {
-					Combat.hit(p, e, 10, p.getDeltaMovement(), 3.0F, 0.4F, false);
+					if (hit.add(e.getId())) {
+						Combat.hit(p, e, 10, p.getDeltaMovement(), 3.0F, 0.4F, false);
+					}
 				}
 				p.fallDistance = 0;
 				return !p.onGround() || tick < 3;
@@ -381,8 +409,10 @@ public final class Moves {
 					sound(p, ModSounds.BOUNCE, 0.8F, 1.4F);
 				}
 			}
-			for (LivingEntity e : lvl(p).getEntitiesOfClass(LivingEntity.class, p.getBoundingBox().inflate(0.8 * size), e -> e != p && e.isAlive())) {
-				Combat.hit(p, e, 1, e.position().subtract(p.position()), 2.5F * size, 0.4F, false);
+			if (tick % 5 == 0) {
+				for (LivingEntity e : lvl(p).getEntitiesOfClass(LivingEntity.class, p.getBoundingBox().inflate(0.8 * size), e -> e != p && e.isAlive())) {
+					Combat.hit(p, e, 1, e.position().subtract(p.position()), 2.5F * size, 0.4F, false);
+				}
 			}
 			return true;
 		});
@@ -553,9 +583,12 @@ public final class Moves {
 		Vec3 dir = p.getLookAngle();
 		Combat.launch(p, dir.scale(2.6).add(0, 0.6, 0));
 		sound(p, ModSounds.SNAP, 1.4F, 0.5F);
+		java.util.Set<Integer> hit = new java.util.HashSet<>();
 		Scheduler.repeat(p, 50, tick -> {
 			for (LivingEntity e : lvl(p).getEntitiesOfClass(LivingEntity.class, p.getBoundingBox().inflate(1.5), e -> e != p && e.isAlive())) {
-				Combat.hit(p, e, 30, p.getDeltaMovement(), 8.0F, 0.6F, false);
+				if (hit.add(e.getId())) {
+					Combat.hit(p, e, 30, p.getDeltaMovement(), 8.0F, 0.6F, false);
+				}
 			}
 			if (tick > 4 && (p.onGround() || p.horizontalCollision)) {
 				groundBurst(p, p.position(), 7.0, 24, 1.0F, Form.GEAR_4_TANKMAN.color);
@@ -574,7 +607,7 @@ public final class Moves {
 		VfxEntity.create(level, VfxType.STRETCH_ARM, shoulder(p, true), WHITE, 3.0F, 46).owner(p).target(sky).variant(LOOK_GEAR5).spawn();
 		Scheduler.later(p, 16, () -> {
 			VfxEntity.create(level, VfxType.GIANT_FIST, sky, WHITE, 13.0F, 60).owner(p).variant(LOOK_GEAR5)
-				.projectile(spot.subtract(sky).normalize().scale(1.4), 90, 14.0F, 9.0F).pierce().impact(Form.GEAR_5.color).spawn();
+				.projectile(spot.subtract(sky).normalize().scale(1.4), 90, 14.0F, 9.0F).pierce().phase().spawn();
 			sound(p, ModSounds.SNAP, 2.0F, 0.4F);
 		});
 		Scheduler.later(p, 40, () -> {
@@ -697,7 +730,7 @@ public final class Moves {
 		if (target != null) {
 			Vec3 behind = target.position().add(p.getLookAngle().multiply(1, 0, 1).normalize().scale(1.8));
 			VfxEntity.create(lvl(p), VfxType.DASH_TRAIL, p.position().add(0, 1, 0), color, 1.0F, 10).target(behind.add(0, 1, 0)).owner(p).spawn();
-			p.teleportTo(behind.x, behind.y, behind.z);
+			safeTeleport(p, behind);
 			Scheduler.later(p, 6, () -> {
 				Combat.hit(p, target, damage, p.getLookAngle(), 2.0F, 0.2F, false);
 				VfxEntity.create(lvl(p), VfxType.SLASH, target.getBoundingBox().getCenter(), color, 3.0F, 10).spin(-20.0F).facing(p.getLookAngle()).spawn();
@@ -859,7 +892,7 @@ public final class Moves {
 		}
 		Vec3 behind = target.position().subtract(target.getLookAngle().multiply(1, 0, 1).normalize().scale(1.6));
 		VfxEntity.create(lvl(p), VfxType.DASH_TRAIL, p.position().add(0, 1, 0), 0xFF6F8CFF, 1.0F, 10).target(behind.add(0, 1, 0)).owner(p).spawn();
-		p.teleportTo(behind.x, behind.y, behind.z);
+		safeTeleport(p, behind);
 		Combat.hit(p, target, 30, target.position().subtract(p.position()), 5.0F, 0.6F, false);
 		impact(lvl(p), target.getBoundingBox().getCenter(), 0xFF6F8CFF, 1.8F);
 		sound(p, ModSounds.KICK, 1.4F, 0.7F);
@@ -1034,13 +1067,13 @@ public final class Moves {
 			Vec3 at = e.position().add(0, -2.5, 0);
 			Scheduler.later(p, n * 2, () -> {
 				VfxEntity.create(level, VfxType.GIANT_FIST, at, MOCHI, 3.0F, 18).owner(p).variant(LOOK_HAKI)
-					.projectile(new Vec3(0, 0.9, 0), 30, 1.0F, 2.0F).upward(1.6F).pierce().spawn();
+					.projectile(new Vec3(0, 0.9, 0), 30, 1.0F, 2.0F).upward(1.6F).pierce().phase().spawn();
 				shock(level, at.add(0, 2.6, 0), 0xFFFFB8D8, 3.0F, 10);
 			});
 		}
 		if (targets.isEmpty()) {
 			Vec3 at = Combat.rayEnd(p, 10).add(0, -2.5, 0);
-			VfxEntity.create(level, VfxType.GIANT_FIST, at, MOCHI, 3.0F, 18).owner(p).variant(LOOK_HAKI).projectile(new Vec3(0, 0.9, 0), 30, 1.0F, 2.0F).upward(1.6F).pierce().spawn();
+			VfxEntity.create(level, VfxType.GIANT_FIST, at, MOCHI, 3.0F, 18).owner(p).variant(LOOK_HAKI).projectile(new Vec3(0, 0.9, 0), 30, 1.0F, 2.0F).upward(1.6F).pierce().phase().spawn();
 		}
 	}
 
@@ -1165,7 +1198,7 @@ public final class Moves {
 				}
 				Vec3 behind = target.position().add(target.position().subtract(p.position()).multiply(1, 0, 1).normalize().scale(1.6));
 				VfxEntity.create(lvl(p), VfxType.DASH_TRAIL, p.position().add(0, 1, 0), 0xFFFF4A30, 1.0F, 10).target(behind.add(0, 1, 0)).owner(p).spawn();
-				p.teleportTo(behind.x, behind.y, behind.z);
+				safeTeleport(p, behind);
 				Combat.hit(p, target, 34, target.position().subtract(p.position()), 4.0F, 0.6F, false);
 				VfxEntity.create(lvl(p), VfxType.CLAW, target.getBoundingBox().getCenter(), 0xFFFF4A30, 2.4F, 10).facing(p.getLookAngle()).spawn();
 				sound(p, ModSounds.SLASH, 1.4F, 1.2F);

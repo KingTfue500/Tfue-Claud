@@ -190,9 +190,10 @@ def tube_tex(name, base, edge, line=None, gloss=None, size=16):
     img = Image.new('RGBA', (size, size))
     for y in range(size):
         for x in range(size):
+            # Lighting comes from the round tube's normals, so keep the colour even (no baked edges).
             u = x / (size - 1)
-            f = 0.72 + 0.4 * math.sin(u * math.pi)
-            c = [base[i] * f + edge[i] * (1 - f) * 0.4 for i in range(3)]
+            f = 0.96 + 0.06 * math.sin(u * math.pi * 4 + y * 0.4)
+            c = [base[i] * f for i in range(3)]
             if line and (y % 8 == 3) and 2 < x < size - 3:
                 c = [c[i] * 0.88 for i in range(3)]
             if gloss and abs(u - 0.35) < 0.08:

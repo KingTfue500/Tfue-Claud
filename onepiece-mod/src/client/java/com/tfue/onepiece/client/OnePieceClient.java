@@ -30,6 +30,7 @@ public class OnePieceClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		ModRenderTypes.glow(ModRenderTypes.tex("glow"));
 		ModModelLayers.register();
+		ClientConfig.load();
 		ClientInput.init();
 
 		EntityRendererRegistry.register(ModEntities.VFX, VfxRenderer::new);
@@ -45,8 +46,23 @@ public class OnePieceClient implements ClientModInitializer {
 
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, OnePiece.id("powers"), PowerHud::extract);
 
-		ClientPlayNetworking.registerGlobalReceiver(ShakePayload.TYPE, (payload, context) -> CameraShake.start(payload.strength(), payload.ticks()));
-		ClientPlayNetworking.registerGlobalReceiver(CutscenePayload.TYPE, (payload, context) -> Cutscene.play(payload.entityId(), Form.byId(payload.form())));
+		ClientPlayNetworking.registerGlobalReceiver(ShakePayload.TYPE, (payload, context) -> {
+			if (ClientConfig.cameraShake()) {
+				CameraShake.start(payload.strength(), payload.ticks());
+			}
+		});
+		ClientPlayNetworking.registerGlobalReceiver(CutscenePayload.TYPE, (payload, context) -> {
+			if (payload.form() >= 0) {
+				if (ClientConfig.cutscenes()) {
+					Cutscene.play(payload.entityId(), Form.byId(payload.form()));
+				}
+			} else {
+				int index = -1 - payload.form();
+				if (ClientConfig.skillCutscenes() && index < com.tfue.onepiece.power.Moves.ALL.size()) {
+					Cutscene.playSkill(payload.entityId(), com.tfue.onepiece.power.Moves.ALL.get(index));
+				}
+			}
+		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			CameraShake.tick();

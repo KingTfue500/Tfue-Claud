@@ -191,7 +191,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			}
 			Vec3 a = prev;
 			Vec3 b = point;
-			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(limb), (pose, buf) -> Geo.tube(buf, pose, a, b, w, w * 1.6F, -1, light));
+			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(limb), (pose, buf) -> Geo.roundTube(buf, pose, a, b, w * 0.55F, w * 0.55F, 8, w * 1.6F, -1, light));
 			prev = point;
 		}
 		// Fist or foot at the end, a little bigger than the limb.
@@ -310,7 +310,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		Vec3 back = new Vec3(0, 0, -fs * 0.8 - trail);
 		if (trail > 0.05F) {
 			collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(armTex),
-				(pose, buf) -> Geo.tube(buf, pose, new Vec3(0, 0, -fs * 0.8), back, fs * 1.1F, fs * 1.4F, -1, light));
+				(pose, buf) -> Geo.roundTube(buf, pose, new Vec3(0, 0, -fs * 0.8), back, fs * 0.62F, fs * 0.55F, 10, fs * 1.4F, -1, light));
 		}
 		// Glowing aura and motion streaks behind the fist.
 		int aura = look == Moves.LOOK_GEAR5 ? 0xA0FFF6D0 : look == Moves.LOOK_HAKI || look == Moves.LOOK_GEAR4 ? 0xA0B0103A : 0x70FFFFFF;

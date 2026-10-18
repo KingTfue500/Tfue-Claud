@@ -48,7 +48,7 @@ Kaido's **Azure Dragon** form flies: double-tap Space, like creative flight.
 
 ## Fighters and forms
 
-Each form has its own skin, body shape, aura, stats and skills. Big forms play a cutscene when you transform.
+Each form has its own skin, body shape, aura, stats and skills. Big forms play a cutscene when you transform: the camera circles you, with cinema bars, speed lines, a flash and a title card. Finishing moves (like Bajrang Gun, Sanzen Sekai, Hell Memories, Thunder Storm, Hakai Mochi or Awakened Rokuogan) get a short cinematic too.
 
 - **Luffy:** Base, Gear 2 (steam, speed), Gear 3 (giant limbs), Gear 4 Boundman / Snakeman / Tankman, Gear 5 (white, cloud scarf, cartoon powers, giant mode)
 - **Zoro:** Santoryu (three swords, one in the mouth), Asura (three heads and nine swords), King of Hell (Enma's purple fire)
@@ -114,6 +114,20 @@ All recipes show up in the recipe book. Crew gear gives a small bonus to its own
 | ![Haki](docs/screenshots/haki.jpg) | ![Katakuri boss](docs/screenshots/katakuri_boss.jpg) |
 
 ![Azure Dragon, Katakuri and Lucci](docs/screenshots/dragon_katakuri_lucci.jpg)
+
+## Settings
+
+`config/onepiece-client.json` is created the first time you start the game:
+
+```json
+{
+  "transformationCutscenes": true,
+  "skillCutscenes": true,
+  "cameraShake": true
+}
+```
+
+Set any of them to `false` and restart the game to turn that effect off.
 
 ## Regenerating the art
 

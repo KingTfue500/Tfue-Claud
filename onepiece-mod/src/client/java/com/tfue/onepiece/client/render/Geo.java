@@ -179,4 +179,30 @@ public final class Geo {
 		v(buf, pose, 0, -h, w, u1, 0, color, light);
 		v(buf, pose, 0, -h, -w, u0, 0, color, light);
 	}
+
+	/** Round tube with {@code sides} faces between two points; texture wraps around and repeats every {@code tile} blocks. */
+	public static void roundTube(VertexConsumer buf, PoseStack.Pose pose, Vec3 a, Vec3 b, float r0, float r1, int sides, float tile, int color, int light) {
+		Vec3 dir = b.subtract(a);
+		double len = dir.length();
+		if (len < 1.0E-4) {
+			return;
+		}
+		Vec3 f = dir.scale(1.0 / len);
+		Vec3 up = Math.abs(f.y) > 0.95 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
+		Vec3 s = f.cross(up).normalize();
+		Vec3 u = s.cross(f).normalize();
+		float vLen = (float) (len / tile);
+		for (int n = 0; n < sides; n++) {
+			double a0 = n / (double) sides * Math.PI * 2;
+			double a1 = (n + 1) / (double) sides * Math.PI * 2;
+			Vec3 d0 = s.scale(Math.cos(a0)).add(u.scale(Math.sin(a0)));
+			Vec3 d1 = s.scale(Math.cos(a1)).add(u.scale(Math.sin(a1)));
+			float t0 = n / (float) sides;
+			float t1 = (n + 1) / (float) sides;
+			vn(buf, pose, a.add(d0.scale(r0)), t0, 0, color, light, d0);
+			vn(buf, pose, a.add(d1.scale(r0)), t1, 0, color, light, d1);
+			vn(buf, pose, b.add(d1.scale(r1)), t1, vLen, color, light, d1);
+			vn(buf, pose, b.add(d0.scale(r1)), t0, vLen, color, light, d0);
+		}
+	}
 }
