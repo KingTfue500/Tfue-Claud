@@ -974,7 +974,7 @@ public final class Moves {
 		Scheduler.repeat(p, 24, tick -> {
 			if (tick % 2 == 0) {
 				Vec3 dir = p.getLookAngle();
-				Vec3 mouth = p.getEyePosition().add(dir.scale(p.getBbWidth()));
+				Vec3 mouth = p.getEyePosition().add(dir.scale(p.getBbWidth() + 1.2));
 				double reach = length * Math.min(1.0, (tick + 4) / 12.0);
 				for (int n = 1; n <= 6; n++) {
 					Vec3 at = mouth.add(dir.scale(reach * n / 6.0));

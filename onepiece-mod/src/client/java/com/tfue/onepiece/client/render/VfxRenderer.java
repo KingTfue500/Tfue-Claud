@@ -113,11 +113,11 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			case SLASH -> slash(state, poseStack, collector, q);
 			case TORNADO -> tornado(state, poseStack, collector, q);
 			case SHOCKWAVE -> shockwave(state, poseStack, collector, q);
-			case FIRE_BURST -> fireBurst(state, poseStack, collector, q, camera);
+			case FIRE_BURST -> fireBurst(state, poseStack, collector, q, camera, camRel);
 			case CONQUEROR -> conqueror(state, poseStack, collector, q, camRel);
 			case LIGHTNING -> lightning(state, poseStack, collector, q, camRel, state.target, state.size, state.color);
 			case IMPACT -> impact(state, poseStack, collector, q, camera);
-			case CLOUD -> cloud(state, poseStack, collector, q, camera);
+			case CLOUD -> cloud(state, poseStack, collector, q, camera, camRel);
 			case DRAGON -> dragon(state, poseStack, collector, q, camera);
 			case DASH_TRAIL -> dashTrail(state, poseStack, collector, q, camRel);
 			case SLASH_RING -> slashRing(state, poseStack, collector, q);
@@ -125,6 +125,12 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			case CLAW -> claw(state, poseStack, collector, q);
 			case CRATER -> crater(state, poseStack, collector, q);
 		}
+	}
+
+	/** Sprites fade out as they get close to the camera, so first-person views never fill with fire or smoke. */
+	private static float nearFade(Vec3 sprite, Vec3 camRel) {
+		double d = sprite.distanceTo(camRel);
+		return (float) Mth.clamp((d - 1.0) / 2.5, 0.0, 1.0);
 	}
 
 	private static RenderType glowOrSoft(int color, Identifier texture) {
@@ -515,7 +521,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			ring(buf, pose, radius * 0.92F, Math.max(0.12F, radius * 0.06F), 0.07F, Geo.alpha(0xFFFFFFFF, fade * 0.7F)));
 	}
 
-	private void fireBurst(State state, PoseStack poseStack, SubmitNodeCollector collector, float q, CameraRenderState camera) {
+	private void fireBurst(State state, PoseStack poseStack, SubmitNodeCollector collector, float q, CameraRenderState camera, Vec3 camRel) {
 		RandomSource random = RandomSource.create(state.seed * 7919L);
 		int frameBase = (int) (q * 8);
 		float s = state.size;
@@ -530,7 +536,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			int frame = Math.min(7, frameBase + random.nextInt(2));
 			float u0 = frame / 8.0F;
 			float u1 = (frame + 1) / 8.0F;
-			int c = Geo.alpha(color, (1.0F - q) * 1.2F);
+			int c = Geo.alpha(color, (1.0F - q) * 1.2F * nearFade(p, camRel));
 			poseStack.pushPose();
 			poseStack.translate(p.x, p.y, p.z);
 			poseStack.mulPose(camera.orientation);
@@ -540,7 +546,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		}
 		poseStack.pushPose();
 		poseStack.mulPose(camera.orientation);
-		int core = Geo.alpha(color, (1.0F - q) * 0.9F);
+		int core = Geo.alpha(color, (1.0F - q) * 0.9F * nearFade(Vec3.ZERO, camRel));
 		collector.submitCustomGeometry(poseStack, ModRenderTypes.glow(GLOW), (pose, buf) -> Geo.billboard(buf, pose, 0, 0, s * (0.6F + q), 0, 0, 1, 1, core, Geo.FULL_BRIGHT));
 		poseStack.popPose();
 	}
@@ -621,7 +627,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 		poseStack.popPose();
 	}
 
-	private void cloud(State state, PoseStack poseStack, SubmitNodeCollector collector, float q, CameraRenderState camera) {
+	private void cloud(State state, PoseStack poseStack, SubmitNodeCollector collector, float q, CameraRenderState camera, Vec3 camRel) {
 		RandomSource random = RandomSource.create(state.seed * 4513L);
 		float s = state.size;
 		int count = 8 + (int) Math.min(16, s * 2);
@@ -631,7 +637,7 @@ public class VfxRenderer extends EntityRenderer<VfxEntity, VfxRenderer.State> {
 			float dist = s * speed * (1 - (1 - q) * (1 - q));
 			Vec3 p = new Vec3(Math.cos(a) * dist, random.nextFloat() * s * 0.4 + q * 0.5, Math.sin(a) * dist);
 			float size = s * (0.3F + random.nextFloat() * 0.3F) * (0.6F + q * 0.6F);
-			int c = Geo.alpha(state.color, (1.0F - q) * 0.9F);
+			int c = Geo.alpha(state.color, (1.0F - q) * 0.9F * nearFade(p, camRel));
 			poseStack.pushPose();
 			poseStack.translate(p.x, p.y, p.z);
 			poseStack.mulPose(camera.orientation);
