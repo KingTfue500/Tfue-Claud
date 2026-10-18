@@ -654,6 +654,10 @@ public final class Moves {
 	}
 
 	static void giantMode(LivingEntity p) {
+		if (p instanceof ServerPlayer player && !Powers.hasRoom(player, 4.0F)) {
+			player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable("message.onepiece.no_room").withStyle(net.minecraft.ChatFormatting.RED));
+			return;
+		}
 		if (p instanceof ServerPlayer player) {
 			Powers.set(player, Powers.get(player).withGiantUntil(lvl(p).getGameTime() + 20 * 18));
 		}

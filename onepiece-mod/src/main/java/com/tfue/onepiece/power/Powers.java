@@ -179,6 +179,10 @@ public final class Powers {
 			player.sendOverlayMessage(Component.translatable("message.onepiece.tired").withStyle(ChatFormatting.RED));
 			return;
 		}
+		if (!free && !hasRoom(player, form.scale)) {
+			player.sendOverlayMessage(Component.translatable("message.onepiece.no_room").withStyle(ChatFormatting.RED));
+			return;
+		}
 		long now = player.level().getGameTime();
 		PowerData next = data.withForm(form).withGiantUntil(0L).withAnim(Anim.FORM_SHIFT, now);
 		if (!free && !data.infinite()) {
@@ -210,6 +214,15 @@ public final class Powers {
 			player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 50, 4, false, false, false));
 			sendCutscene(player, form);
 		}
+	}
+
+	/** Whether a body of the given size fits where the player stands. */
+	public static boolean hasRoom(ServerPlayer player, float scale) {
+		double width = 0.6 * scale;
+		double height = 1.8 * scale;
+		net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(
+			player.getX() - width / 2, player.getY() + 0.01, player.getZ() - width / 2, player.getX() + width / 2, player.getY() + height, player.getZ() + width / 2);
+		return player.level().noCollision(player, box);
 	}
 
 	public static void endForm(ServerPlayer player, boolean exhausted) {

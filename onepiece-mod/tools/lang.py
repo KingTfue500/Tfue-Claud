@@ -89,6 +89,7 @@ L = {
     'message.onepiece.learned': 'You can now fight as %s! Hold V for forms, hold R for skills.',
     'message.onepiece.switched': 'Now fighting as %s',
     'message.onepiece.no_power': 'You have no powers yet. Eat a Devil Fruit, use a katana or read the Cook Book.',
+    'message.onepiece.no_room': 'Not enough room to grow that big here!',
     'message.onepiece.tired': 'Not enough stamina!', 'message.onepiece.exhausted': 'You pushed too hard. Exhausted!',
     'message.onepiece.need_sword': 'Hold a sword to use Santoryu', 'message.onepiece.armament_on': 'Armament Haki: ON',
     'message.onepiece.armament_off': 'Armament Haki: OFF', 'message.onepiece.observation_on': 'Observation Haki: ON',

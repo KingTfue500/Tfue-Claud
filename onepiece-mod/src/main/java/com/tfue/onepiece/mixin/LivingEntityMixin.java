@@ -34,6 +34,11 @@ public abstract class LivingEntityMixin {
 		if (!data.active()) {
 			return;
 		}
+		// Big forms squeezed into tight spaces shouldn't choke on the blocks around them.
+		if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL) && (data.form().scale > 1.05F || data.giantUntil() > level.getGameTime())) {
+			cir.setReturnValue(false);
+			return;
+		}
 		if (data.fighter() == Fighter.LUFFY && source.is(DamageTypeTags.IS_LIGHTNING)) {
 			cir.setReturnValue(false);
 			return;
