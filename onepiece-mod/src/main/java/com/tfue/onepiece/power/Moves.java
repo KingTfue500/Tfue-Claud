@@ -672,6 +672,10 @@ public final class Moves {
 		sound(p, ModSounds.SHEATHE, 1.0F, 1.2F);
 		Vec3 start = p.position().add(0, 1, 0);
 		Vec3 end = Combat.dash(p, distance, color, e -> {
+			if (p instanceof ServerPlayer player && Combat.canHit(p, e, lvl(p))) {
+				// The cut lands behind the swordsman, so the hit is felt rather than seen in first person.
+				Powers.shake(player, 0.25F, 6);
+			}
 			Combat.hit(p, e, damage, p.getLookAngle(), 2.0F, 0.3F, false);
 			VfxEntity.create(lvl(p), VfxType.SLASH, e.getBoundingBox().getCenter(), color, 2.4F, 10).spin(45.0F).facing(p.getLookAngle()).spawn();
 			VfxEntity.create(lvl(p), VfxType.SLASH, e.getBoundingBox().getCenter(), color, 2.4F, 10).spin(-45.0F).facing(p.getLookAngle()).spawn();
@@ -799,13 +803,17 @@ public final class Moves {
 
 	static void dashKick(LivingEntity p, double distance, float damage, float knock, boolean fire, int color) {
 		sound(p, ModSounds.WHOOSH, 1.0F, 1.3F);
+		// The kick lands in front of the first enemy reached, so it stays in view in first person.
 		Combat.dash(p, distance, color, e -> {
 			Combat.hit(p, e, damage, p.getLookAngle(), knock, 0.6F, fire);
 			impact(lvl(p), e.getBoundingBox().getCenter(), color, 1.6F);
 			if (fire) {
 				VfxEntity.create(lvl(p), VfxType.FIRE_BURST, e.getBoundingBox().getCenter(), color, 2.0F, 14).spawn();
 			}
-		});
+			if (p instanceof ServerPlayer player) {
+				Powers.shake(player, 0.3F, 6);
+			}
+		}, true);
 		sound(p, fire ? ModSounds.FIRE_BLAST : ModSounds.KICK, 1.2F, 1.0F);
 	}
 

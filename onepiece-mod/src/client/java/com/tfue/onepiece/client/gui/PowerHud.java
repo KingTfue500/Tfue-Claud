@@ -45,7 +45,8 @@ public final class PowerHud {
 			return;
 		}
 		PowerData data = Powers.get(mc.player);
-		if (!data.active()) {
+		// The wheels show the same information, so the panels step aside while one is open.
+		if (!data.active() || mc.gui.screen() instanceof MoveWheelScreen) {
 			return;
 		}
 		int w = g.guiWidth();

@@ -201,12 +201,18 @@ public final class Combat {
 	 * Used by Oni Giri, Jet Dash, Rhino Schneider and every other dash.
 	 */
 	public static Vec3 dash(LivingEntity player, double distance, int trailColor, Consumer<LivingEntity> onPass) {
+		return dash(player, distance, trailColor, onPass, false);
+	}
+
+	/** Dash forward; with {@code stopAtTarget} the dash ends right in front of the first creature it reaches. */
+	public static Vec3 dash(LivingEntity player, double distance, int trailColor, Consumer<LivingEntity> onPass, boolean stopAtTarget) {
 		ServerLevel level = (ServerLevel) player.level();
 		Vec3 dir = player.getLookAngle();
 		Vec3 flat = new Vec3(dir.x, Math.max(-0.3, Math.min(0.3, dir.y)), dir.z).normalize();
 		Vec3 start = player.position();
 		Vec3 pos = start;
 		List<Integer> passed = new ArrayList<>();
+		boolean struck = false;
 		for (double d = 0; d < distance; d += 0.5) {
 			Vec3 next = pos.add(flat.scale(0.5));
 			AABB box = player.getBoundingBox().move(next.subtract(player.position()));
@@ -219,12 +225,24 @@ public final class Combat {
 					break;
 				}
 			}
+			if (stopAtTarget) {
+				List<LivingEntity> ahead = level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().move(next.subtract(player.position())).inflate(1.5),
+					e -> e.isAlive() && e != player && canHit(player, e, level));
+				if (!ahead.isEmpty()) {
+					ahead.forEach(onPass);
+					break;
+				}
+			}
 			pos = next;
 			for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().move(pos.subtract(player.position())).inflate(1.2), e -> e.isAlive() && e != player)) {
 				if (!passed.contains(e.getId())) {
 					passed.add(e.getId());
 					onPass.accept(e);
+					struck |= canHit(player, e, level);
 				}
+			}
+			if (stopAtTarget && struck) {
+				break;
 			}
 		}
 		VfxEntity.create(level, VfxType.DASH_TRAIL, start.add(0, 1, 0), trailColor, 1.0F, 12).target(pos.add(0, 1, 0)).owner(player).spawn();
