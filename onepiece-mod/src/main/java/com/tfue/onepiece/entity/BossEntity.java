@@ -183,7 +183,9 @@ public abstract class BossEntity extends Monster {
 		Powers.sendCutscene(this, form);
 		for (ServerPlayer near : level.getPlayers(p -> p.distanceToSqr(this) < 64 * 64)) {
 			Powers.shake(near, 1.0F, 30);
-			near.sendOverlayMessage(Component.translatable("message.onepiece.boss_transform", this.getDisplayName(), Component.translatable(form.translationKey())).withColor(form.color & 0xFFFFFF));
+			if (near.distanceToSqr(this) > 64 * 64 || !form.hasCutscene()) {
+				near.sendOverlayMessage(Component.translatable("message.onepiece.boss_transform", this.getDisplayName(), Component.translatable(form.translationKey())).withColor(form.color & 0xFFFFFF));
+			}
 		}
 		this.heal(this.getMaxHealth() * 0.05F);
 	}

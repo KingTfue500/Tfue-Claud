@@ -30,6 +30,12 @@ public final class CameraShake {
 		}
 	}
 
+	public static void reset() {
+		strength = 0;
+		ticksLeft = 0;
+		impactFrame = 0;
+	}
+
 	public static void tick() {
 		if (impactFrame > 0) {
 			impactFrame--;

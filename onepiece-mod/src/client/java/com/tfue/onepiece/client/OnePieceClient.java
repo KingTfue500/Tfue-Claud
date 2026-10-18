@@ -64,6 +64,10 @@ public class OnePieceClient implements ClientModInitializer {
 			}
 		});
 
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			Cutscene.stop();
+			CameraShake.reset();
+		});
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			CameraShake.tick();
 			ClientInput.tick(client);

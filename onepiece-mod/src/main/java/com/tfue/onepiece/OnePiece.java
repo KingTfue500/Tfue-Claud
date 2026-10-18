@@ -12,6 +12,7 @@ import com.tfue.onepiece.registry.ModSounds;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -68,6 +69,11 @@ public class OnePiece implements ModInitializer {
 		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> Powers.onRespawn(newPlayer));
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> welcome(handler.getPlayer()));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Powers.onDisconnect(handler.getPlayer()));
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			Powers.clearAll();
+			Scheduler.clearAll();
+		});
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, selection) -> OnePieceCommand.register(dispatcher));
 
 		LOGGER.info("One Piece: Straw Hat Powers loaded. Set sail!");

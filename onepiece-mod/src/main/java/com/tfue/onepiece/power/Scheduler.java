@@ -66,6 +66,10 @@ public final class Scheduler {
 		TASKS.addAll(keep);
 	}
 
+	public static void clearAll() {
+		TASKS.clear();
+	}
+
 	public static void clear(LivingEntity owner) {
 		Iterator<Task> it = TASKS.iterator();
 		while (it.hasNext()) {

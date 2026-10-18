@@ -62,6 +62,20 @@ public final class Powers {
 	public static void init() {
 	}
 
+	/** Forget per-session timers when the world closes, so they never leak into the next world. */
+	public static void clearAll() {
+		AIR_JUMPS.clear();
+		CONQUEROR_READY.clear();
+		DODGE_UNTIL.clear();
+		DRAGON_FLIGHT.clear();
+	}
+
+	public static void onDisconnect(ServerPlayer player) {
+		AIR_JUMPS.remove(player.getUUID());
+		DODGE_UNTIL.remove(player.getUUID());
+		Scheduler.clear(player);
+	}
+
 	public static PowerData get(Player player) {
 		PowerData data = player.getAttached(DATA);
 		return data != null ? data : PowerData.EMPTY;
@@ -107,7 +121,8 @@ public final class Powers {
 			return;
 		}
 		com.tfue.onepiece.network.CutscenePayload payload = new com.tfue.onepiece.network.CutscenePayload(entity.getId(), form.ordinal());
-		for (ServerPlayer near : level.getPlayers(pl -> pl.distanceToSqr(entity) < 64 * 64)) {
+		// A player's transformation only takes over their own camera; a boss transforming is shown to everyone nearby.
+		for (ServerPlayer near : level.getPlayers(pl -> entity instanceof Player ? pl == entity : pl.distanceToSqr(entity) < 64 * 64)) {
 			if (ServerPlayNetworking.canSend(near, com.tfue.onepiece.network.CutscenePayload.TYPE)) {
 				ServerPlayNetworking.send(near, payload);
 			}
