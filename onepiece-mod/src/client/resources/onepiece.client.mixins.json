@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "com.tfue.onepiece.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"AbstractClientPlayerMixin",
+		"AvatarRendererMixin",
+		"PlayerModelMixin",
+		"MinecraftMixin",
+		"CameraMixin",
+		"LivingEntityRendererMixin",
+		"GameRendererMixin"
+	],
+	"injectors": { "defaultRequire": 1 }
+}

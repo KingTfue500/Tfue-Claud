@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "onepiece",
+	"version": "${version}",
+	"name": "One Piece: Straw Hat Powers",
+	"description": "Fight as Luffy, Zoro or Sanji. Every Gear, sword style and Black Leg form, all three Haki, custom animations and effects, and boss fights against Kaido, Katakuri and Lucci.",
+	"authors": ["KingTfue500"],
+	"license": "All-Rights-Reserved",
+	"icon": "assets/onepiece/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.tfue.onepiece.OnePiece"],
+		"client": ["com.tfue.onepiece.client.OnePieceClient"]
+	},
+	"mixins": [
+		"onepiece.mixins.json",
+		{ "config": "onepiece.client.mixins.json", "environment": "client" }
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

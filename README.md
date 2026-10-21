@@ -26,3 +26,7 @@ Der Mond ist zerbrochen: Als kleiner Zwerg sammelst du fünf Mondsplitter und br
 - **Hand-Turm** – das Finale
 
 Alles (Grafik, Musik, Soundeffekte) wird im Code erzeugt; es gibt keine externen Bilder oder Audiodateien.
+
+## One Piece: Straw Hat Powers (Minecraft mod)
+
+The `onepiece-mod/` folder holds a Fabric mod for Minecraft Java 26.2: play as Luffy, Zoro, Sanji, Kaido, Katakuri or Lucci, with every form, Haki, cutscenes and boss fights. A ready-to-use jar is in `onepiece-mod/dist/`. See [onepiece-mod/README.md](onepiece-mod/README.md) for install steps and controls.

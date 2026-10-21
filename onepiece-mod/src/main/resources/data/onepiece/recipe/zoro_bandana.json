@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "BBB",
+    "B B"
+  ],
+  "key": {
+    "B": "minecraft:black_wool"
+  },
+  "result": {
+    "id": "onepiece:zoro_bandana",
+    "count": 1
+  }
+}

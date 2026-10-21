@@ -1,0 +1,140 @@
+{
+  "stretch": {
+    "sounds": [
+      "onepiece:stretch"
+    ],
+    "subtitle": "subtitles.onepiece.stretch"
+  },
+  "snap": {
+    "sounds": [
+      "onepiece:snap"
+    ],
+    "subtitle": "subtitles.onepiece.snap"
+  },
+  "punch": {
+    "sounds": [
+      "onepiece:punch"
+    ],
+    "subtitle": "subtitles.onepiece.punch"
+  },
+  "heavy_impact": {
+    "sounds": [
+      "onepiece:heavy_impact"
+    ],
+    "subtitle": "subtitles.onepiece.heavy_impact"
+  },
+  "gatling": {
+    "sounds": [
+      "onepiece:gatling"
+    ],
+    "subtitle": "subtitles.onepiece.gatling"
+  },
+  "whoosh": {
+    "sounds": [
+      "onepiece:whoosh"
+    ],
+    "subtitle": "subtitles.onepiece.whoosh"
+  },
+  "slash": {
+    "sounds": [
+      "onepiece:slash"
+    ],
+    "subtitle": "subtitles.onepiece.slash"
+  },
+  "big_slash": {
+    "sounds": [
+      "onepiece:big_slash"
+    ],
+    "subtitle": "subtitles.onepiece.big_slash"
+  },
+  "sheathe": {
+    "sounds": [
+      "onepiece:sheathe"
+    ],
+    "subtitle": "subtitles.onepiece.sheathe"
+  },
+  "tornado": {
+    "sounds": [
+      "onepiece:tornado"
+    ],
+    "subtitle": "subtitles.onepiece.tornado"
+  },
+  "kick": {
+    "sounds": [
+      "onepiece:kick"
+    ],
+    "subtitle": "subtitles.onepiece.kick"
+  },
+  "fire": {
+    "sounds": [
+      "onepiece:fire"
+    ],
+    "subtitle": "subtitles.onepiece.fire"
+  },
+  "fire_blast": {
+    "sounds": [
+      "onepiece:fire_blast"
+    ],
+    "subtitle": "subtitles.onepiece.fire_blast"
+  },
+  "steam": {
+    "sounds": [
+      "onepiece:steam"
+    ],
+    "subtitle": "subtitles.onepiece.steam"
+  },
+  "inflate": {
+    "sounds": [
+      "onepiece:inflate"
+    ],
+    "subtitle": "subtitles.onepiece.inflate"
+  },
+  "bounce": {
+    "sounds": [
+      "onepiece:bounce"
+    ],
+    "subtitle": "subtitles.onepiece.bounce"
+  },
+  "drums": {
+    "sounds": [
+      "onepiece:drums"
+    ],
+    "subtitle": "subtitles.onepiece.drums"
+  },
+  "lightning": {
+    "sounds": [
+      "onepiece:lightning"
+    ],
+    "subtitle": "subtitles.onepiece.lightning"
+  },
+  "haki": {
+    "sounds": [
+      "onepiece:haki"
+    ],
+    "subtitle": "subtitles.onepiece.haki"
+  },
+  "conqueror": {
+    "sounds": [
+      "onepiece:conqueror"
+    ],
+    "subtitle": "subtitles.onepiece.conqueror"
+  },
+  "form_up": {
+    "sounds": [
+      "onepiece:form_up"
+    ],
+    "subtitle": "subtitles.onepiece.form_up"
+  },
+  "boss_roar": {
+    "sounds": [
+      "onepiece:boss_roar"
+    ],
+    "subtitle": "subtitles.onepiece.boss_roar"
+  },
+  "eat_fruit": {
+    "sounds": [
+      "onepiece:eat_fruit"
+    ],
+    "subtitle": "subtitles.onepiece.eat_fruit"
+  }
+}
