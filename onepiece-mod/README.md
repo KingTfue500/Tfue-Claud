@@ -112,6 +112,7 @@ All recipes show up in the recipe book. Crew gear gives a small bonus to its own
 | ![Gear 4 cutscene](docs/screenshots/gear4_cutscene.jpg) | ![Gear 3 Elephant Gun](docs/screenshots/gear3_elephant_gun.jpg) |
 | ![Tatsumaki](docs/screenshots/tatsumaki.jpg) | ![Asura Makyusen](docs/screenshots/asura_makyusen.jpg) |
 | ![Haki](docs/screenshots/haki.jpg) | ![Katakuri boss](docs/screenshots/katakuri_boss.jpg) |
+| ![Azure Dragon cutscene](docs/screenshots/azure_dragon_cutscene.jpg) | ![Mochi Wall](docs/screenshots/mochi_wall.jpg) |
 
 ![Azure Dragon, Katakuri and Lucci](docs/screenshots/dragon_katakuri_lucci.jpg)
 

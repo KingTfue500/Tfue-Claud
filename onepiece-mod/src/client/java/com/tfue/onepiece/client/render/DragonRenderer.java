@@ -48,7 +48,7 @@ public final class DragonRenderer {
 				float f = n / (float) SEGMENTS;
 				float w = h * 0.2F * (1.0F - f * 0.75F);
 				float wNext = h * 0.2F * (1.0F - (n + 1) / (float) SEGMENTS * 0.75F);
-				Geo.roundTube(buf, pose, spine[n], spine[n + 1], w * 0.55F, wNext * 0.55F, 10, w * 1.2F, 0xFFFFFFFF, light);
+				Geo.roundTube(buf, pose, spine[n], spine[n + 1], w * 0.8F, wNext * 0.8F, 12, w * 1.2F, 0xFFFFFFFF, light);
 			}
 		});
 		// Lighter belly plates under the front half.
@@ -56,8 +56,8 @@ public final class DragonRenderer {
 			for (int n = 1; n < SEGMENTS / 2; n++) {
 				float f = n / (float) SEGMENTS;
 				float w = h * 0.2F * (1.0F - f * 0.75F);
-				Vec3 down = new Vec3(0, -w * 0.32, 0);
-				Geo.roundTube(buf, pose, spine[n].add(down), spine[n + 1].add(down), w * 0.42F, w * 0.4F, 8, w, 0xFFFFFFFF, light);
+				Vec3 down = new Vec3(0, -w * 0.4, 0);
+				Geo.roundTube(buf, pose, spine[n].add(down), spine[n + 1].add(down), w * 0.6F, w * 0.58F, 8, w, 0xFFFFFFFF, light);
 			}
 		});
 		// Mane spikes along the back.
@@ -66,7 +66,7 @@ public final class DragonRenderer {
 			float f = n / (float) SEGMENTS;
 			float w = h * 0.2F * (1.0F - f * 0.75F);
 			poseStack.pushPose();
-			poseStack.translate(spine[n].x, spine[n].y + w * 0.4, spine[n].z);
+			poseStack.translate(spine[n].x, spine[n].y + w * 0.65, spine[n].z);
 			poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
 			poseStack.mulPose(Axis.XP.rotationDegrees(-35.0F));
 			float mh = w * (1.4F + Mth.sin(t * 0.2F + n) * 0.15F);
@@ -77,7 +77,7 @@ public final class DragonRenderer {
 		for (int leg : new int[] {3, 10}) {
 			for (int side = -1; side <= 1; side += 2) {
 				float w = h * 0.2F * (1.0F - leg / (float) SEGMENTS * 0.75F);
-				Vec3 root = spine[leg].add(side * w * 0.5, -w * 0.2, 0);
+				Vec3 root = spine[leg].add(side * w * 0.72, -w * 0.3, 0);
 				Vec3 knee = root.add(side * w * 0.6, -w * 0.9, w * 0.2 * Mth.sin(t * 0.1F + leg));
 				Vec3 foot = knee.add(side * w * 0.1, -w * 0.4, -w * 0.5);
 				collector.submitCustomGeometry(poseStack, ModRenderTypes.soft(SCALES), (pose, buf) -> {
@@ -97,7 +97,7 @@ public final class DragonRenderer {
 			float f = n / (float) SEGMENTS;
 			float w = h * 0.2F * (1.0F - f * 0.75F);
 			for (int k = 0; k < 2; k++) {
-				Vec3 at = spine[n].add((k - 0.5) * w * 1.2, -w * (1.0 + 0.2 * Mth.sin(t * 0.2F + n)), 0);
+				Vec3 at = spine[n].add((k - 0.5) * w * 1.4, -w * (1.25 + 0.2 * Mth.sin(t * 0.2F + n)), 0);
 				int fr = (frame + n + k * 3) % 8;
 				sprite(poseStack, collector, camera, FIRE, true, at, w * 0.8F, fr / 8.0F, (fr + 1) / 8.0F, 0xD0FF8A30);
 				sprite(poseStack, collector, camera, CLOUD, false, at.add(0, -w * 0.3, 0), w * 0.7F, 0, 1, 0xC0F0E8E0);
@@ -108,7 +108,7 @@ public final class DragonRenderer {
 
 	private static void head(LivingEntityRenderState state, PowerRenderInfo info, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera,
 		Vec3 neck, Vec3 behind, float h, float t, int light) {
-		float s = h * 0.13F;
+		float s = h * 0.16F;
 		poseStack.pushPose();
 		poseStack.translate(neck.x, neck.y, neck.z);
 		poseStack.mulPose(Axis.YP.rotationDegrees(-state.yRot));
