@@ -16,6 +16,18 @@
     },
     "weed_red_eyes": {
       "textures": "textures/models/red_eyes"
+    },
+    "weed_beer": {
+      "textures": "textures/items/beer"
+    },
+    "weed_vodka": {
+      "textures": "textures/items/vodka"
+    },
+    "weed_coca_leaf": {
+      "textures": "textures/items/coca_leaf"
+    },
+    "weed_cocaine": {
+      "textures": "textures/items/cocaine"
     }
   }
 }

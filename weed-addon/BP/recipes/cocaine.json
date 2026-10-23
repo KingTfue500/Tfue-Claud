@@ -1,0 +1,4 @@
+{ "format_version": "1.21.100", "minecraft:recipe_shapeless": {
+  "description": { "identifier": "weed:cocaine" }, "tags": ["crafting_table"],
+  "ingredients": [{ "item": "weed:coca_leaf" }, { "item": "weed:coca_leaf" }, { "item": "weed:coca_leaf" }, { "item": "minecraft:sugar" }],
+  "result": { "item": "weed:cocaine", "count": 2 } } }

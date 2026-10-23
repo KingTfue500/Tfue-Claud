@@ -1,0 +1,14 @@
+{
+  "format_version": "1.21.100",
+  "minecraft:item": {
+    "description": { "identifier": "weed:cocaine", "menu_category": { "category": "items" } },
+    "components": {
+      "minecraft:icon": "weed_cocaine",
+      "minecraft:display_name": { "value": "item.weed:cocaine.name" },
+      "minecraft:max_stack_size": 16,
+      "minecraft:food": { "can_always_eat": true, "nutrition": 0, "saturation_modifier": 0 },
+      "minecraft:use_modifiers": { "use_duration": 1.0, "movement_modifier": 0.5 },
+      "minecraft:use_animation": "drink"
+    }
+  }
+}

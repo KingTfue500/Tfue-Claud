@@ -1,0 +1,9 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": { "identifier": "weed:haze_amber" },
+    "distance": {
+      "air": { "fog_start": 0.05, "fog_end": 0.7, "fog_color": "#E0A040", "render_distance_type": "render" }
+    }
+  }
+}

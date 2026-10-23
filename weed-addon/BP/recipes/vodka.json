@@ -1,0 +1,4 @@
+{ "format_version": "1.21.100", "minecraft:recipe_shapeless": {
+  "description": { "identifier": "weed:vodka" }, "tags": ["crafting_table"],
+  "ingredients": [{ "item": "minecraft:potato" }, { "item": "minecraft:potato" }, { "item": "minecraft:potato" }, { "item": "minecraft:glass_bottle" }],
+  "result": { "item": "weed:vodka", "count": 1 } } }

@@ -1,23 +1,92 @@
 import { world, system, ItemStack, EquipmentSlot, ItemLockMode } from "@minecraft/server";
 
-const HIGH_TICKS = 20 * 90; // one joint = 90 seconds high
+const SEC = 20;
+const KNOCKOUT_LEVEL = 5; // reaching level 5 of anything = knocked out
+const MIX_LIMIT = 6; // total levels across all substances = knocked out
+const KNOCKOUT_TICKS = 15 * SEC;
+
+// item -> what it does
+const SUBSTANCES = {
+  "weed:joint": { kind: "weed", ticks: 90 * SEC, dose: 1 },
+  "weed:beer": { kind: "alcohol", ticks: 120 * SEC, dose: 1 },
+  "weed:vodka": { kind: "alcohol", ticks: 120 * SEC, dose: 2 },
+  "weed:cocaine": { kind: "cocaine", ticks: 60 * SEC, dose: 1 },
+};
+
+const NAMES = {
+  weed: ["", "§aChill", "§aBaked", "§2Stoned", "§2Greening out"],
+  alcohol: ["", "§6Tipsy", "§6Drunk", "§cWasted", "§4Blackout drunk"],
+  cocaine: ["", "§fWired", "§fRacing", "§cToo much", "§4Overdosing"],
+};
+
+// Effects per level. Each level is worse than the last.
+const LEVEL_EFFECTS = {
+  weed(p, lvl, t) {
+    fx(p, "slowness", t, lvl >= 3 ? 1 : 0);
+    fx(p, "hunger", t, lvl - 1); // munchies
+    if (lvl === 1) fx(p, "regeneration", 10 * SEC, 0);
+    if (lvl >= 2) fx(p, "nausea", t, 0);
+    if (lvl >= 3) fx(p, "weakness", t, 0);
+    if (lvl >= 4) {
+      fx(p, "blindness", 8 * SEC, 0);
+      p.onScreenDisplay.setTitle("§2Greening out...", { fadeInDuration: 10, stayDuration: 40, fadeOutDuration: 20 });
+    }
+  },
+  alcohol(p, lvl, t) {
+    if (lvl === 1) fx(p, "strength", t, 0); // liquid courage
+    if (lvl >= 2) fx(p, "nausea", t, 0);
+    if (lvl >= 2) fx(p, "slowness", t, lvl - 2);
+    if (lvl >= 3) fx(p, "mining_fatigue", t, 0);
+    if (lvl >= 4) fx(p, "darkness", t, 0);
+  },
+  cocaine(p, lvl, t) {
+    fx(p, "speed", t, lvl - 1);
+    fx(p, "haste", t, Math.min(lvl, 2) - 1);
+    if (lvl >= 2) fx(p, "jump_boost", t, 0);
+    if (lvl >= 3) fx(p, "nausea", t, 0);
+    if (lvl >= 4) fx(p, "darkness", t, 0);
+    p.camera.fade({
+      fadeColor: { red: 1, green: 1, blue: 1 },
+      fadeTime: { fadeInTime: 0.1, holdTime: 0.1, fadeOutTime: 0.8 },
+    });
+  },
+};
+
 const GRASS = ["minecraft:short_grass", "minecraft:tall_grass", "minecraft:fern"];
 const LIGHTERS = ["weed:lighter", "minecraft:flint_and_steel"];
 const HAZES = ["weed:haze_green", "weed:haze_purple", "weed:haze_pink", "weed:haze_blue"];
 
-// playerId -> { until: tick, level: joints smoked this high, haze: index }
-const highs = new Map();
+// playerId -> { subs: { kind: { until, level } }, haze, koUntil }
+const states = new Map();
 
-// 10% chance for grass to drop a weed bud
+function state(player) {
+  let s = states.get(player.id);
+  if (!s) states.set(player.id, (s = { subs: {}, haze: 0, koUntil: 0 }));
+  return s;
+}
+
+function fx(player, effect, ticks, amplifier) {
+  player.addEffect(effect, ticks, { amplifier, showParticles: false });
+}
+
+// Grass drops weed buds, jungle leaves drop coca leaves
 world.afterEvents.playerBreakBlock.subscribe(({ block, brokenBlockPermutation }) => {
-  if (!GRASS.includes(brokenBlockPermutation.type.id) || Math.random() > 0.1) return;
-  block.dimension.spawnItem(new ItemStack("weed:bud", 1), block.center());
+  const id = brokenBlockPermutation.type.id;
+  let drop;
+  if (GRASS.includes(id) && Math.random() < 0.1) drop = "weed:bud";
+  if (id === "minecraft:jungle_leaves" && Math.random() < 0.15) drop = "weed:coca_leaf";
+  if (drop) block.dimension.spawnItem(new ItemStack(drop, 1), block.center());
 });
 
-// Need a lighter (or flint and steel) in the inventory to light up
 world.beforeEvents.itemUse.subscribe((event) => {
-  if (event.itemStack.typeId !== "weed:joint") return;
+  if (!SUBSTANCES[event.itemStack.typeId]) return;
   const player = event.source;
+  if (state(player).koUntil > system.currentTick) {
+    event.cancel = true;
+    return;
+  }
+  if (event.itemStack.typeId !== "weed:joint") return;
+  // Need a lighter (or flint and steel) in the inventory to light up
   if (findLighter(player) === undefined) {
     event.cancel = true;
     system.run(() => player.onScreenDisplay.setActionBar("§cYou need a lighter to smoke this"));
@@ -27,37 +96,78 @@ world.beforeEvents.itemUse.subscribe((event) => {
 });
 
 world.afterEvents.itemCompleteUse.subscribe(({ itemStack, source: player }) => {
-  if (itemStack.typeId !== "weed:joint") return;
-  useLighter(player);
-
+  const sub = SUBSTANCES[itemStack.typeId];
+  if (!sub) return;
+  const s = state(player);
   const now = system.currentTick;
-  const prev = highs.get(player.id);
-  const level = prev && prev.until > now ? prev.level + 1 : 1;
-  const until = Math.max(prev?.until ?? now, now) + HIGH_TICKS;
-  highs.set(player.id, { until, level, haze: prev?.haze ?? 0 });
 
-  const ticks = until - now;
-  player.addEffect("slowness", ticks, { amplifier: 0, showParticles: false });
-  player.addEffect("hunger", ticks, { amplifier: 0, showParticles: false }); // munchies
-  player.addEffect("regeneration", 20 * 10, { amplifier: 0, showParticles: false });
-  if (level >= 2) player.addEffect("nausea", 20 * 15 * level, { amplifier: 0, showParticles: false });
-  if (level >= 4) {
-    player.addEffect("blindness", 20 * 8, { amplifier: 0 });
-    player.onScreenDisplay.setTitle("§2Greened out...", { fadeInDuration: 10, stayDuration: 40, fadeOutDuration: 20 });
+  const prev = s.subs[sub.kind];
+  const active = prev && prev.until > now;
+  const level = (active ? prev.level : 0) + sub.dose;
+  const until = (active ? prev.until : now) + sub.ticks;
+  s.subs[sub.kind] = { until, level };
+
+  const total = Object.values(s.subs).reduce((sum, x) => sum + x.level, 0);
+  if (level >= KNOCKOUT_LEVEL || total >= MIX_LIMIT) {
+    knockout(player, total >= MIX_LIMIT && level < KNOCKOUT_LEVEL ? "You mixed too much." : "You took too much.");
+    return;
   }
 
-  puff(player, 4);
-  // Hold it in, then exhale a big cloud
-  system.runTimeout(() => {
-    if (!player.isValid) return;
-    puff(player, 18);
-    player.dimension.playSound("random.fizz", player.location, { volume: 0.4, pitch: 0.6 });
-  }, 30);
+  LEVEL_EFFECTS[sub.kind](player, level, until - now);
 
-  redFlash(player);
-  wearRedEyes(player);
-  player.onScreenDisplay.setActionBar(`§aYou're high §7(level ${level})`);
+  if (sub.kind === "weed") {
+    useLighter(player);
+    smokeHit(player);
+    wearRedEyes(player);
+  } else if (sub.kind === "alcohol") {
+    player.dimension.playSound("random.burp", player.location);
+  } else {
+    player.dimension.playSound("mob.warden.heartbeat", player.location, { volume: 0.8 });
+  }
+  player.onScreenDisplay.setActionBar(status(s));
 });
+
+function knockout(player, reason) {
+  const s = state(player);
+  s.subs = {};
+  s.koUntil = system.currentTick + KNOCKOUT_TICKS;
+  player.runCommand("effect @s clear");
+  fx(player, "blindness", KNOCKOUT_TICKS, 0);
+  fx(player, "slowness", KNOCKOUT_TICKS, 255);
+  player.runCommand("inputpermission set @s movement disabled");
+  player.runCommand("inputpermission set @s camera disabled");
+  player.camera.fade({
+    fadeColor: { red: 0, green: 0, blue: 0 },
+    fadeTime: { fadeInTime: 0.5, holdTime: KNOCKOUT_TICKS / SEC - 1.5, fadeOutTime: 1 },
+  });
+  player.onScreenDisplay.setTitle("§4KNOCKED OUT", { fadeInDuration: 10, stayDuration: 80, fadeOutDuration: 20, subtitle: `§7${reason}` });
+  player.dimension.playSound("random.hurt", player.location);
+  for (let i = 1; i <= 4; i++) {
+    system.runTimeout(() => player.isValid && player.playSound("mob.warden.heartbeat", { pitch: 0.7 }), i * 3 * SEC);
+  }
+  system.runTimeout(() => player.isValid && wakeUp(player), KNOCKOUT_TICKS);
+}
+
+function wakeUp(player) {
+  const s = state(player);
+  s.koUntil = 0;
+  restoreInput(player);
+  clearVisuals(player);
+  fx(player, "nausea", 10 * SEC, 0);
+  fx(player, "weakness", 60 * SEC, 0);
+  fx(player, "slowness", 20 * SEC, 0);
+  player.onScreenDisplay.setActionBar("§7You wake up with a terrible headache...");
+}
+
+function restoreInput(player) {
+  player.runCommand("inputpermission set @s movement enabled");
+  player.runCommand("inputpermission set @s camera enabled");
+}
+
+function status(s) {
+  const parts = Object.entries(s.subs).map(([kind, x]) => NAMES[kind][x.level]);
+  return parts.join(" §7| ");
+}
 
 function findLighter(player) {
   const inv = player.getComponent("minecraft:inventory").container;
@@ -82,6 +192,20 @@ function useLighter(player) {
   }
 }
 
+function smokeHit(player) {
+  puff(player, 4);
+  player.camera.fade({
+    fadeColor: { red: 0.7, green: 0.05, blue: 0.05 },
+    fadeTime: { fadeInTime: 0.3, holdTime: 0.1, fadeOutTime: 1.2 },
+  });
+  // Hold it in, then exhale a big cloud
+  system.runTimeout(() => {
+    if (!player.isValid) return;
+    puff(player, 18);
+    player.dimension.playSound("random.fizz", player.location, { volume: 0.4, pitch: 0.6 });
+  }, 30);
+}
+
 function puff(player, count) {
   const head = player.getHeadLocation();
   const view = player.getViewDirection();
@@ -94,11 +218,9 @@ function puff(player, count) {
   }
 }
 
-function redFlash(player) {
-  player.camera.fade({
-    fadeColor: { red: 0.7, green: 0.05, blue: 0.05 },
-    fadeTime: { fadeInTime: 0.3, holdTime: 0.1, fadeOutTime: 1.2 },
-  });
+function stumble(player, strength) {
+  const angle = Math.random() * Math.PI * 2;
+  player.applyKnockback({ x: Math.cos(angle) * strength, z: Math.sin(angle) * strength }, 0.1);
 }
 
 // Red eyes on the player's face, visible to everyone. Only if no helmet is on.
@@ -111,32 +233,69 @@ function wearRedEyes(player) {
   equip.setEquipment(EquipmentSlot.Head, eyes);
 }
 
-function sober(player) {
-  highs.delete(player.id);
+function removeRedEyes(player) {
   const equip = player.getComponent("minecraft:equippable");
   if (equip?.getEquipment(EquipmentSlot.Head)?.typeId === "weed:red_eyes") {
     equip.setEquipment(EquipmentSlot.Head, undefined);
   }
+}
+
+function clearVisuals(player) {
+  removeRedEyes(player);
   player.runCommand("fog @s remove weed_high");
 }
 
-// While high: colors shift through a trippy haze, occasional smoke
+function wearOff(player, kind, level) {
+  if (kind === "weed") removeRedEyes(player);
+  if (kind === "cocaine") {
+    // The crash
+    fx(player, "slowness", 30 * SEC, 1);
+    fx(player, "weakness", 30 * SEC, 0);
+    fx(player, "mining_fatigue", 30 * SEC, 0);
+    player.onScreenDisplay.setActionBar("§8You're crashing hard...");
+  } else {
+    player.onScreenDisplay.setActionBar(`§7The ${kind} wore off.`);
+  }
+}
+
+// Every 3 seconds: wear-off checks, haze colors, stumbling, heartbeat, damage
 system.runInterval(() => {
   const now = system.currentTick;
   for (const player of world.getAllPlayers()) {
-    const high = highs.get(player.id);
-    if (!high) continue;
-    if (high.until <= now) {
-      sober(player);
-      player.onScreenDisplay.setActionBar("§7You feel sober again.");
-      continue;
+    const s = states.get(player.id);
+    if (!s || s.koUntil > now) continue;
+
+    for (const [kind, x] of Object.entries(s.subs)) {
+      if (x.until <= now) {
+        delete s.subs[kind];
+        wearOff(player, kind, x.level);
+      }
     }
-    high.haze = (high.haze + 1) % HAZES.length;
+    const { weed, alcohol, cocaine } = s.subs;
+
     player.runCommand("fog @s remove weed_high");
-    player.runCommand(`fog @s push ${HAZES[high.haze]} weed_high`);
-    if (Math.random() < 0.3) puff(player, 3);
+    if (weed) {
+      s.haze = (s.haze + 1) % HAZES.length;
+      player.runCommand(`fog @s push ${HAZES[s.haze]} weed_high`);
+      if (Math.random() < 0.3) puff(player, 3);
+    } else if (alcohol) {
+      player.runCommand("fog @s push weed:haze_amber weed_high");
+    }
+
+    if (alcohol?.level >= 3) stumble(player, alcohol.level === 3 ? 0.4 : 0.8);
+    if (cocaine?.level >= 2) player.playSound("mob.warden.heartbeat", { pitch: 1 + cocaine.level * 0.2 });
+    if (cocaine?.level >= 3) {
+      stumble(player, 0.3); // the shakes
+      player.applyDamage(cocaine.level === 3 ? 1 : 2);
+    }
+
+    if (Object.keys(s.subs).length) player.onScreenDisplay.setActionBar(status(s));
   }
-}, 20 * 3);
+}, 3 * SEC);
 
 // Clean up after death or rejoining
-world.afterEvents.playerSpawn.subscribe(({ player }) => sober(player));
+world.afterEvents.playerSpawn.subscribe(({ player }) => {
+  states.delete(player.id);
+  restoreInput(player);
+  clearVisuals(player);
+});

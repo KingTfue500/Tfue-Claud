@@ -1,0 +1,10 @@
+{
+  "format_version": "1.21.100",
+  "minecraft:item": {
+    "description": { "identifier": "weed:coca_leaf", "menu_category": { "category": "items" } },
+    "components": {
+      "minecraft:icon": "weed_coca_leaf",
+      "minecraft:display_name": { "value": "item.weed:coca_leaf.name" }
+    }
+  }
+}
