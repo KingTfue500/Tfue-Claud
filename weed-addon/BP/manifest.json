@@ -4,16 +4,16 @@
     "name": "Joint Mod BP",
     "description": "Grow, roll and smoke joints",
     "uuid": "d6d8c44f-9f3e-4d81-a704-56e7caebff28",
-    "version": [1, 5, 0],
+    "version": [1, 6, 0],
     "min_engine_version": [1, 21, 100]
   },
   "modules": [
-    { "type": "data", "uuid": "2aea33d6-fb05-4441-9f97-5a7ce29ef88b", "version": [1, 5, 0] },
+    { "type": "data", "uuid": "2aea33d6-fb05-4441-9f97-5a7ce29ef88b", "version": [1, 6, 0] },
     { "type": "script", "language": "javascript", "entry": "scripts/main.js",
-      "uuid": "47d439ff-dd17-4116-9ae0-f2001e276864", "version": [1, 5, 0] }
+      "uuid": "47d439ff-dd17-4116-9ae0-f2001e276864", "version": [1, 6, 0] }
   ],
   "dependencies": [
     { "module_name": "@minecraft/server", "version": "2.0.0" },
-    { "uuid": "ef26054b-782c-4488-ab77-ee3223ad270d", "version": [1, 5, 0] }
+    { "uuid": "ef26054b-782c-4488-ab77-ee3223ad270d", "version": [1, 6, 0] }
   ]
 }

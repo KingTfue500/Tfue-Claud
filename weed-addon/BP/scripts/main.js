@@ -56,6 +56,10 @@ const GRASS = ["minecraft:short_grass", "minecraft:tall_grass", "minecraft:fern"
 const LIGHTERS = ["weed:lighter", "minecraft:flint_and_steel"];
 const HAZES = ["weed:haze_green", "weed:haze_purple", "weed:haze_pink", "weed:haze_blue"];
 
+// Body animations, played while using and right after
+const USE_ANIM = { weed: "animation.weed.inhale", alcohol: "animation.weed.chug", cocaine: "animation.weed.snort" };
+const AFTER_ANIM = { weed: "animation.weed.exhale", alcohol: "animation.weed.wipe_mouth", cocaine: "animation.weed.rush" };
+
 // playerId -> { subs: { kind: { until, level } }, fog, koUntil }
 const states = new Map();
 // playerId -> item being used right now (for smoke/sounds while using)
@@ -63,8 +67,19 @@ const using = new Map();
 
 function state(player) {
   let s = states.get(player.id);
-  if (!s) states.set(player.id, (s = { subs: {}, fog: undefined, koUntil: 0 }));
+  if (!s) states.set(player.id, (s = { subs: {}, fog: undefined, sway: undefined, koUntil: 0 }));
   return s;
+}
+
+// Plays on the player's body: everyone sees it, and you see it in third person
+function anim(player, name, controller = "weed_action", stopExpression = "q.any_animation_finished") {
+  player.playAnimation(name, { controller, stopExpression, blendOutTime: 0.25 });
+}
+
+function setSway(player, s, name) {
+  if (s.sway === name) return;
+  s.sway = name;
+  anim(player, name ?? "animation.weed.reset", "weed_state", name ? "0" : undefined);
 }
 
 function fx(player, effect, ticks, amplifier) {
@@ -81,9 +96,14 @@ world.afterEvents.playerBreakBlock.subscribe(({ block, brokenBlockPermutation })
 });
 
 world.beforeEvents.itemUse.subscribe((event) => {
-  if (!SUBSTANCES[event.itemStack.typeId]) return;
   const player = event.source;
-  if (state(player).koUntil > system.currentTick) {
+  const knockedOut = states.get(player.id)?.koUntil > system.currentTick;
+  if (knockedOut && event.itemStack.typeId === "minecraft:milk_bucket") {
+    event.cancel = true; // no milk to skip the knockout
+    return;
+  }
+  if (!SUBSTANCES[event.itemStack.typeId]) return;
+  if (knockedOut) {
     event.cancel = true;
     return;
   }
@@ -98,9 +118,15 @@ world.beforeEvents.itemUse.subscribe((event) => {
 });
 
 world.afterEvents.itemStartUse.subscribe(({ itemStack, source: player }) => {
-  if (SUBSTANCES[itemStack.typeId]) using.set(player.id, { player, typeId: itemStack.typeId, tick: 0 });
+  const sub = SUBSTANCES[itemStack.typeId];
+  if (!sub) return;
+  using.set(player.id, { player, typeId: itemStack.typeId, tick: 0 });
+  anim(player, USE_ANIM[sub.kind]);
 });
-world.afterEvents.itemStopUse.subscribe(({ source: player }) => using.delete(player.id));
+// Let go early: put the arm back down
+world.afterEvents.itemStopUse.subscribe(({ source: player }) => {
+  if (using.delete(player.id)) anim(player, "animation.weed.reset");
+});
 
 // While using: joint smoulders, bottles glug, cocaine sniffs
 system.runInterval(() => {
@@ -132,16 +158,18 @@ world.afterEvents.itemCompleteUse.subscribe(({ itemStack, source: player }) => {
   const prev = s.subs[sub.kind];
   const active = prev && prev.until > now;
   const level = (active ? prev.level : 0) + sub.dose;
-  const until = (active ? prev.until : now) + sub.ticks;
+  // Each dose adds time, but never more than 2 doses' worth is left
+  const until = Math.min((active ? prev.until : now) + sub.ticks, now + sub.ticks * 2);
   s.subs[sub.kind] = { until, level };
 
-  const total = Object.values(s.subs).reduce((sum, x) => sum + x.level, 0);
+  const total = Object.values(s.subs).reduce((sum, x) => sum + (x.until > now ? x.level : 0), 0);
   if (level >= KNOCKOUT_LEVEL || total >= MIX_LIMIT) {
     knockout(player, total >= MIX_LIMIT && level < KNOCKOUT_LEVEL ? "You mixed too much." : "You took too much.");
     return;
   }
 
   LEVEL_EFFECTS[sub.kind](player, level, until - now);
+  anim(player, AFTER_ANIM[sub.kind]);
 
   if (sub.kind === "weed") {
     useLighter(player);
@@ -161,6 +189,8 @@ function knockout(player, reason) {
   const s = state(player);
   s.subs = {};
   s.koUntil = system.currentTick + KNOCKOUT_TICKS;
+  setSway(player, s, undefined);
+  anim(player, "animation.weed.knocked_out", "weed_ko", "0"); // fall over, visible to friends
   player.runCommand("effect @s clear");
   fx(player, "blindness", KNOCKOUT_TICKS, 0);
   fx(player, "slowness", KNOCKOUT_TICKS, 255);
@@ -180,8 +210,10 @@ function knockout(player, reason) {
 }
 
 function wakeUp(player) {
-  const s = state(player);
+  const s = states.get(player.id);
+  if (!s?.koUntil) return; // died or rejoined while knocked out
   s.koUntil = 0;
+  anim(player, "animation.weed.reset", "weed_ko");
   restoreInput(player);
   clearVisuals(player);
   fx(player, "nausea", 10 * SEC, 0);
@@ -196,6 +228,7 @@ function soberUp(player) {
   if (!s || s.koUntil > system.currentTick) return;
   states.delete(player.id);
   clearVisuals(player);
+  anim(player, "animation.weed.reset", "weed_state");
   player.onScreenDisplay.setActionBar("§bYou feel clear-headed again.");
 }
 
@@ -302,7 +335,7 @@ function clearVisuals(player) {
   player.runCommand("fog @s remove weed_high");
 }
 
-function wearOff(player, kind, level) {
+function wearOff(player, kind) {
   if (kind === "weed") removeRedEyes(player);
   if (kind === "cocaine") {
     // The crash
@@ -325,7 +358,7 @@ system.runInterval(() => {
     for (const [kind, x] of Object.entries(s.subs)) {
       if (x.until <= now) {
         delete s.subs[kind];
-        wearOff(player, kind, x.level);
+        wearOff(player, kind);
       }
     }
     const { weed, alcohol, cocaine } = s.subs;
@@ -338,19 +371,28 @@ system.runInterval(() => {
       s.fog = fog;
     }
 
+    const heavy = alcohol?.level >= 4 || weed?.level >= 4;
+    setSway(player, s, heavy ? "animation.weed.sway_heavy" : alcohol?.level >= 2 ? "animation.weed.sway" : undefined);
+
     if (weed && Math.random() < 0.3) puff(player, 3);
     if (alcohol?.level >= 4 && Math.random() < 0.4) stumble(player, 0.3);
     if (cocaine?.level >= 2) player.playSound("mob.warden.heartbeat", { pitch: 1 + cocaine.level * 0.2 });
-    if (cocaine?.level >= 4) player.applyDamage(1);
+    // Overdose hurts, but stops at 2 hearts so it can't kill you by itself
+    if (cocaine?.level >= 4 && player.getComponent("minecraft:health").currentValue > 4) player.applyDamage(1);
 
     if (Object.keys(s.subs).length) player.onScreenDisplay.setActionBar(status(s));
   }
 }, 3 * SEC);
 
 // Clean up after death or rejoining
-world.afterEvents.playerSpawn.subscribe(({ player }) => {
+function reset(player) {
   states.delete(player.id);
   using.delete(player.id);
   restoreInput(player);
   clearVisuals(player);
-});
+  anim(player, "animation.weed.reset", "weed_state");
+  anim(player, "animation.weed.reset", "weed_ko");
+}
+world.afterEvents.playerSpawn.subscribe(({ player }) => reset(player));
+// After /reload the script forgets everything; don't leave anyone stuck
+system.run(() => world.getAllPlayers().forEach(reset));
