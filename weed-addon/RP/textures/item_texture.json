@@ -1,0 +1,9 @@
+{
+  "resource_pack_name": "weed",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "weed_bud": { "textures": "textures/items/bud" },
+    "weed_rolling_paper": { "textures": "textures/items/rolling_paper" },
+    "weed_joint": { "textures": "textures/items/joint" }
+  }
+}

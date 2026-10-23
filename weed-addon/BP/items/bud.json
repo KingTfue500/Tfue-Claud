@@ -1,0 +1,10 @@
+{
+  "format_version": "1.21.100",
+  "minecraft:item": {
+    "description": { "identifier": "weed:bud", "menu_category": { "category": "items" } },
+    "components": {
+      "minecraft:icon": "weed_bud",
+      "minecraft:display_name": { "value": "item.weed:bud.name" }
+    }
+  }
+}

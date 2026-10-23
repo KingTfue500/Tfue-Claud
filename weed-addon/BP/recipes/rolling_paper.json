@@ -1,0 +1,4 @@
+{ "format_version": "1.21.100", "minecraft:recipe_shapeless": {
+  "description": { "identifier": "weed:rolling_paper" }, "tags": ["crafting_table"],
+  "ingredients": [{ "item": "minecraft:paper" }],
+  "result": { "item": "weed:rolling_paper", "count": 4 } } }

@@ -1,0 +1,10 @@
+{
+  "format_version": "1.21.100",
+  "minecraft:item": {
+    "description": { "identifier": "weed:rolling_paper", "menu_category": { "category": "items" } },
+    "components": {
+      "minecraft:icon": "weed_rolling_paper",
+      "minecraft:display_name": { "value": "item.weed:rolling_paper.name" }
+    }
+  }
+}
