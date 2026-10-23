@@ -2,8 +2,20 @@
   "resource_pack_name": "weed",
   "texture_name": "atlas.items",
   "texture_data": {
-    "weed_bud": { "textures": "textures/items/bud" },
-    "weed_rolling_paper": { "textures": "textures/items/rolling_paper" },
-    "weed_joint": { "textures": "textures/items/joint" }
+    "weed_bud": {
+      "textures": "textures/items/bud"
+    },
+    "weed_rolling_paper": {
+      "textures": "textures/items/rolling_paper"
+    },
+    "weed_joint": {
+      "textures": "textures/items/joint"
+    },
+    "weed_lighter": {
+      "textures": "textures/items/lighter"
+    },
+    "weed_red_eyes": {
+      "textures": "textures/models/red_eyes"
+    }
   }
 }

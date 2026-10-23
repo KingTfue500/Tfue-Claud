@@ -1,0 +1,9 @@
+{
+  "format_version": "1.16.100",
+  "minecraft:fog_settings": {
+    "description": { "identifier": "weed:haze_pink" },
+    "distance": {
+      "air": { "fog_start": 0.1, "fog_end": 0.85, "fog_color": "#FF5CC8", "render_distance_type": "render" }
+    }
+  }
+}

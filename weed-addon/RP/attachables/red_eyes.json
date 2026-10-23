@@ -1,0 +1,12 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:attachable": {
+    "description": {
+      "identifier": "weed:red_eyes",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/models/red_eyes" },
+      "geometry": { "default": "geometry.weed_red_eyes" },
+      "render_controllers": ["controller.render.default"]
+    }
+  }
+}
