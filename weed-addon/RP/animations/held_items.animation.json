@@ -1,0 +1,73 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.weed.held.hold_first_person": {
+   "loop": true,
+   "bones": {
+    "item": {
+     "position": [
+      0,
+      2,
+      -2
+     ],
+     "rotation": [
+      -20,
+      0,
+      10
+     ]
+    }
+   }
+  },
+  "animation.weed.held.hold_third_person": {
+   "loop": true,
+   "bones": {
+    "item": {
+     "position": [
+      0,
+      -2,
+      -1
+     ],
+     "rotation": [
+      70,
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.weed.held.use_first_person": {
+   "loop": true,
+   "bones": {
+    "item": {
+     "position": [
+      -6,
+      "5 + math.sin(q.life_time * 400) * 0.3",
+      3
+     ],
+     "rotation": [
+      -50,
+      -20,
+      -40
+     ]
+    }
+   }
+  },
+  "animation.weed.held.use_third_person": {
+   "loop": true,
+   "bones": {
+    "item": {
+     "position": [
+      0,
+      "2 + math.sin(q.life_time * 400) * 0.2",
+      -1
+     ],
+     "rotation": [
+      -60,
+      0,
+      0
+     ]
+    }
+   }
+  }
+ }
+}

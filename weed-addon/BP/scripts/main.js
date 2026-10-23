@@ -58,6 +58,8 @@ const HAZES = ["weed:haze_green", "weed:haze_purple", "weed:haze_pink", "weed:ha
 
 // playerId -> { subs: { kind: { until, level } }, haze, koUntil }
 const states = new Map();
+// playerId -> item being used right now (for smoke/sounds while using)
+const using = new Map();
 
 function state(player) {
   let s = states.get(player.id);
@@ -95,7 +97,34 @@ world.beforeEvents.itemUse.subscribe((event) => {
   system.run(() => player.dimension.playSound("fire.ignite", player.location));
 });
 
+world.afterEvents.itemStartUse.subscribe(({ itemStack, source: player }) => {
+  if (SUBSTANCES[itemStack.typeId]) using.set(player.id, { player, typeId: itemStack.typeId, tick: 0 });
+});
+world.afterEvents.itemStopUse.subscribe(({ source: player }) => using.delete(player.id));
+
+// While using: joint smoulders, bottles glug, cocaine sniffs
+system.runInterval(() => {
+  for (const [id, u] of using) {
+    const { player, typeId } = u;
+    if (!player.isValid) {
+      using.delete(id);
+      continue;
+    }
+    const t = u.tick++;
+    if (typeId === "weed:joint") {
+      tipSmoke(player);
+      if (t % 5 === 0) player.dimension.playSound("fire.fire", player.location, { volume: 0.3, pitch: 1.4 });
+    } else if (typeId === "weed:cocaine") {
+      if (t % 4 === 0) player.dimension.playSound("mob.fox.sniff", player.location, { pitch: 1.3 });
+    } else if (t % 4 === 0) {
+      player.dimension.playSound("random.drink", player.location, { volume: 0.6, pitch: 0.8 });
+    }
+  }
+}, 4);
+
 world.afterEvents.itemCompleteUse.subscribe(({ itemStack, source: player }) => {
+  using.delete(player.id);
+  if (itemStack.typeId === "minecraft:milk_bucket") return soberUp(player);
   const sub = SUBSTANCES[itemStack.typeId];
   if (!sub) return;
   const s = state(player);
@@ -121,8 +150,10 @@ world.afterEvents.itemCompleteUse.subscribe(({ itemStack, source: player }) => {
     wearRedEyes(player);
   } else if (sub.kind === "alcohol") {
     player.dimension.playSound("random.burp", player.location);
+    shake(player, 0.15 * level, 1.5, "rotational");
   } else {
     player.dimension.playSound("mob.warden.heartbeat", player.location, { volume: 0.8 });
+    shake(player, 0.4, 0.6, "positional");
   }
   player.onScreenDisplay.setActionBar(status(s));
 });
@@ -142,6 +173,7 @@ function knockout(player, reason) {
   });
   player.onScreenDisplay.setTitle("§4KNOCKED OUT", { fadeInDuration: 10, stayDuration: 80, fadeOutDuration: 20, subtitle: `§7${reason}` });
   player.dimension.playSound("random.hurt", player.location);
+  shake(player, 1, 0.6, "rotational");
   for (let i = 1; i <= 4; i++) {
     system.runTimeout(() => player.isValid && player.playSound("mob.warden.heartbeat", { pitch: 0.7 }), i * 3 * SEC);
   }
@@ -157,6 +189,20 @@ function wakeUp(player) {
   fx(player, "weakness", 60 * SEC, 0);
   fx(player, "slowness", 20 * SEC, 0);
   player.onScreenDisplay.setActionBar("§7You wake up with a terrible headache...");
+}
+
+// Milk bucket clears everything (but not while knocked out)
+function soberUp(player) {
+  const s = states.get(player.id);
+  if (!s || s.koUntil > system.currentTick) return;
+  states.delete(player.id);
+  clearVisuals(player);
+  player.runCommand("camerashake stop @s");
+  player.onScreenDisplay.setActionBar("§bYou feel clear-headed again.");
+}
+
+function shake(player, intensity, seconds, type) {
+  player.runCommand(`camerashake add @s ${Math.min(intensity, 4).toFixed(2)} ${seconds} ${type}`);
 }
 
 function restoreInput(player) {
@@ -204,6 +250,17 @@ function smokeHit(player) {
     puff(player, 18);
     player.dimension.playSound("random.fizz", player.location, { volume: 0.4, pitch: 0.6 });
   }, 30);
+}
+
+// Thin wisp of smoke from the lit end of the joint
+function tipSmoke(player) {
+  const head = player.getHeadLocation();
+  const view = player.getViewDirection();
+  player.dimension.spawnParticle("minecraft:basic_smoke_particle", {
+    x: head.x + view.x * 0.5 - view.z * 0.25,
+    y: head.y - 0.15,
+    z: head.z + view.z * 0.5 + view.x * 0.25,
+  });
 }
 
 function puff(player, count) {
@@ -282,8 +339,13 @@ system.runInterval(() => {
       player.runCommand("fog @s push weed:haze_amber weed_high");
     }
 
+    if (alcohol?.level >= 2) shake(player, 0.1 * alcohol.level, 3, "rotational"); // world sways
     if (alcohol?.level >= 3) stumble(player, alcohol.level === 3 ? 0.4 : 0.8);
-    if (cocaine?.level >= 2) player.playSound("mob.warden.heartbeat", { pitch: 1 + cocaine.level * 0.2 });
+    if (weed?.level >= 4) shake(player, 0.15, 3, "rotational");
+    if (cocaine?.level >= 2) {
+      player.playSound("mob.warden.heartbeat", { pitch: 1 + cocaine.level * 0.2 });
+      shake(player, 0.05 * cocaine.level, 3, "positional"); // jitters
+    }
     if (cocaine?.level >= 3) {
       stumble(player, 0.3); // the shakes
       player.applyDamage(cocaine.level === 3 ? 1 : 2);
@@ -296,6 +358,7 @@ system.runInterval(() => {
 // Clean up after death or rejoining
 world.afterEvents.playerSpawn.subscribe(({ player }) => {
   states.delete(player.id);
+  using.delete(player.id);
   restoreInput(player);
   clearVisuals(player);
 });
