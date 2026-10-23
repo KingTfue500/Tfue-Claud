@@ -56,14 +56,14 @@ const GRASS = ["minecraft:short_grass", "minecraft:tall_grass", "minecraft:fern"
 const LIGHTERS = ["weed:lighter", "minecraft:flint_and_steel"];
 const HAZES = ["weed:haze_green", "weed:haze_purple", "weed:haze_pink", "weed:haze_blue"];
 
-// playerId -> { subs: { kind: { until, level } }, haze, koUntil }
+// playerId -> { subs: { kind: { until, level } }, fog, koUntil }
 const states = new Map();
 // playerId -> item being used right now (for smoke/sounds while using)
 const using = new Map();
 
 function state(player) {
   let s = states.get(player.id);
-  if (!s) states.set(player.id, (s = { subs: {}, haze: 0, koUntil: 0 }));
+  if (!s) states.set(player.id, (s = { subs: {}, fog: undefined, koUntil: 0 }));
   return s;
 }
 
@@ -113,7 +113,6 @@ system.runInterval(() => {
     const t = u.tick++;
     if (typeId === "weed:joint") {
       tipSmoke(player);
-      if (t % 5 === 0) player.dimension.playSound("fire.fire", player.location, { volume: 0.3, pitch: 1.4 });
     } else if (typeId === "weed:cocaine") {
       if (t % 4 === 0) player.dimension.playSound("mob.fox.sniff", player.location, { pitch: 1.3 });
     } else if (t % 4 === 0) {
@@ -150,10 +149,10 @@ world.afterEvents.itemCompleteUse.subscribe(({ itemStack, source: player }) => {
     wearRedEyes(player);
   } else if (sub.kind === "alcohol") {
     player.dimension.playSound("random.burp", player.location);
-    shake(player, 0.15 * level, 1.5, "rotational");
+    shake(player, 0.1 * level, 1, "rotational");
   } else {
     player.dimension.playSound("mob.warden.heartbeat", player.location, { volume: 0.8 });
-    shake(player, 0.4, 0.6, "positional");
+    shake(player, 0.2, 0.5, "positional");
   }
   player.onScreenDisplay.setActionBar(status(s));
 });
@@ -197,7 +196,6 @@ function soberUp(player) {
   if (!s || s.koUntil > system.currentTick) return;
   states.delete(player.id);
   clearVisuals(player);
-  player.runCommand("camerashake stop @s");
   player.onScreenDisplay.setActionBar("§bYou feel clear-headed again.");
 }
 
@@ -299,6 +297,8 @@ function removeRedEyes(player) {
 
 function clearVisuals(player) {
   removeRedEyes(player);
+  const s = states.get(player.id);
+  if (s) s.fog = undefined;
   player.runCommand("fog @s remove weed_high");
 }
 
@@ -330,26 +330,18 @@ system.runInterval(() => {
     }
     const { weed, alcohol, cocaine } = s.subs;
 
-    player.runCommand("fog @s remove weed_high");
-    if (weed) {
-      s.haze = (s.haze + 1) % HAZES.length;
-      player.runCommand(`fog @s push ${HAZES[s.haze]} weed_high`);
-      if (Math.random() < 0.3) puff(player, 3);
-    } else if (alcohol) {
-      player.runCommand("fog @s push weed:haze_amber weed_high");
+    // Only touch the fog when it needs to change; changing fog causes lag
+    const fog = weed ? HAZES[(weed.level - 1) % HAZES.length] : alcohol ? "weed:haze_amber" : undefined;
+    if (fog !== s.fog) {
+      if (s.fog) player.runCommand("fog @s remove weed_high");
+      if (fog) player.runCommand(`fog @s push ${fog} weed_high`);
+      s.fog = fog;
     }
 
-    if (alcohol?.level >= 2) shake(player, 0.1 * alcohol.level, 3, "rotational"); // world sways
-    if (alcohol?.level >= 3) stumble(player, alcohol.level === 3 ? 0.4 : 0.8);
-    if (weed?.level >= 4) shake(player, 0.15, 3, "rotational");
-    if (cocaine?.level >= 2) {
-      player.playSound("mob.warden.heartbeat", { pitch: 1 + cocaine.level * 0.2 });
-      shake(player, 0.05 * cocaine.level, 3, "positional"); // jitters
-    }
-    if (cocaine?.level >= 3) {
-      stumble(player, 0.3); // the shakes
-      player.applyDamage(cocaine.level === 3 ? 1 : 2);
-    }
+    if (weed && Math.random() < 0.3) puff(player, 3);
+    if (alcohol?.level >= 4 && Math.random() < 0.4) stumble(player, 0.3);
+    if (cocaine?.level >= 2) player.playSound("mob.warden.heartbeat", { pitch: 1 + cocaine.level * 0.2 });
+    if (cocaine?.level >= 4) player.applyDamage(1);
 
     if (Object.keys(s.subs).length) player.onScreenDisplay.setActionBar(status(s));
   }
